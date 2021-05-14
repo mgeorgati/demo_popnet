@@ -1,5 +1,14 @@
 # Get names of branches
 git branch -a
 
-#Switch among branches
+#Switch among branches and see if branch is updated
 git checkout BRANCH_Name
+
+#Fetch from and integrate with another repository or a local branch
+git pull
+
+#adds a change in the working directory to the staging area
+git add .
+
+#
+git commit -m "changes"
