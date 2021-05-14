@@ -4,11 +4,16 @@ git branch -a
 #Switch among branches and see if branch is updated
 git checkout BRANCH_Name
 
+git status
+
 #Fetch from and integrate with another repository or a local branch
 git pull
 
 #adds a change in the working directory to the staging area
 git add .
 
-#
+# The "commit" command is used to save your changes to the local repository.
 git commit -m "changes"
+
+#upload local repository content to a remote repository
+git push
