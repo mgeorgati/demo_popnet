@@ -1,0 +1,5 @@
+# Get names of branches
+git branch -a
+
+#Switch among branches
+git checkout BRANCH_Name
