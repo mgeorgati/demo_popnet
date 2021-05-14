@@ -16,4 +16,7 @@ git add .
 git commit -m "changes"
 
 #upload local repository content to a remote repository
-git push
+git push -u origin BRANCH_Name
+
+#delete remote branch 
+git push origin --delete BRANCH_Name

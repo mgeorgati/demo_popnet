@@ -1,0 +1,20 @@
+  {
+    "exp_name": "trial01_pol",
+    "exp_name_train": "trial01_pak_train",
+    "sub_exp": "trial01_pak_CV_00",
+    "num_epochs": 20,
+    "learning_rate": 0.001,
+    "batch_size": 16,
+    "max_to_keep": 5,
+    "chunk_height": 48,
+    "chunk_width": 48,
+    "feature_list": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+    "feature_values": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0],
+    "num_outputs": 4,
+    "pop_proj": [18974, 20402, 21064, 21638],
+    "train_size": 0.7,
+    "test_size": 0.3,
+    "cost_cell": 0.5,
+    "cost_chunk": 0.5,
+    "bbox": [4456400, 3608600, 4497100, 3636700]
+  }

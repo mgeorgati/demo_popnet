@@ -1,9 +1,0 @@
-The folder summarizeResults contains various scripts to visualize the produced outcome of the experiments of the popmodel and summarize them in html files:
-Each trial number has the same input layers (check doc_trials.txt and see images in InputMatrixes)  
-
-    1. main: Define paths and run processes one after the other
-        Provide trialNo 
-        -> vizInput: Plot image for input layers (save in InputMatrixes)
-        -> vizOutput: Plot image for output layers (save in each country/extTrial/output folder)
-        -> makeDiary: Collect all data of trialNo to html table 
-
