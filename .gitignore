@@ -1,0 +1,8 @@
+# Folder ignores
+experiments/
+data/
+data_prep/ams_ProjectData/
+data_prep/cph_ProjectData/
+data_prep/crc_ProjectData/
+data_prep/rom_ProjectData/
+data_prep/euroData/

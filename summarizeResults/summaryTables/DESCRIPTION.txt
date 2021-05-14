@@ -1,0 +1,10 @@
+Trial03: Input includes 35 layers before cleaning.
+Trial04: Input includes only 12 larger regions of origin and 1 layer of locals
+
+Trial05: Input includes 16 larger regions of origin and 1 layer of locals (may be compared to trial 04)), A. added corine, B. water and infrastructure 
+The summary tables show: id, name of trial, epoques, the learning rate, the batch and chunk size, 
+    _ 4 maps with the significance of the error per cell for the years that are not included in training (2012,2014,2016,2018)
+        calculated as e = Di(Di+Fi)/SDi  where Di=ground truth, Fi= projection, SDi= sum of ground truth
+    _ the loss diagram, where orange = train and blue = test
+    _ a line diagram of the sum population comparing ground truth and projection
+    _ cell value error %, calculated by the reclassification of the significance of error
