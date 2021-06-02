@@ -19,8 +19,10 @@ city ='ams'
 # choose processes to run fOR AMS ----------------------------------------------------------------------------------------------
 # Initial preparation of Population data ("yes" / "no") csvTOtif
 
-#csv_to_shp
+#csv_to_shp --> dataVectorGrid, dataVectorGridSums
 init_csv_to_shp = "yes"
+#Calculate Percentages --> dataVectorGridDivs
+init_calcPercentages= "yes"
 #Rasterize shapefiles: shp_to_tif
 init_shp_to_tif = "yes"
 # Check if there are mismatches among the tif folders for socio-demographic variables
@@ -43,5 +45,5 @@ python_scripts_folder_path = r'C:/Users/NM12LQ/Anaconda3/envs/popnet_env/Scripts
 #path to folder with gdal_rasterize.exe
 gdal_rasterize_path = r'C:/Users/NM12LQ/Anaconda3/envs/popnet_env/Library/bin' #O:/projekter/PY000014_D/popnet_env/Library/bin
 
-process_data(ancillary_data_folder_path, ancillary_POPdata_folder_path, gdal_rasterize_path, init_csv_to_shp, init_shp_to_tif, create_empty_tif, init_tif_to_png, merge_tifs, 
+process_data(ancillary_data_folder_path, ancillary_POPdata_folder_path, gdal_rasterize_path, init_csv_to_shp,init_calcPercentages, init_shp_to_tif, create_empty_tif, init_tif_to_png, merge_tifs, 
              cph_area_path, city, python_scripts_folder_path)

@@ -57,7 +57,7 @@ initExtensionPGRouting = "no"
 
 #-------- PROCESS: Import Data to Postgres Database --------
 initImports = "no"
-initImportProcess = "no" 
+initImportProcess = "yes" 
 
 #-------- PROCESS: WATER --------
 init_waterProcess = "no"

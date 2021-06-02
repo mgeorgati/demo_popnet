@@ -9,17 +9,16 @@ import time
 import copy
 import re
 from itertools import combinations
-from csv_to_raster import csvtoshp , shptoraster #,sumCountries
+from csv_to_raster import csvtoshp, calc_Perc, shptoraster #,sumCountries
 #from mergeSelectionCoI import sumUpTifsByGeographicalRegion, sumUpTifsByGeogrRegionCoI, mergeCoI, mergeAoI
 from variables import country_Orig
-
-
                     
-def process_data(ancillary_data_folder_path, ancillary_POPdata_folder_path, gdal_rasterize_path, init_csv_to_shp, init_shp_to_tif, create_empty_tif, init_tif_to_png, merge_tifs, 
+def process_data(ancillary_data_folder_path, ancillary_POPdata_folder_path, gdal_rasterize_path, init_csv_to_shp, init_calcPercentages, init_shp_to_tif, create_empty_tif, init_tif_to_png, merge_tifs, 
                 cph_area_path, city, python_scripts_folder_path):
     #Start total preparation time timer
     start_total_algorithm_timer = time.time()
-    years_list= [ 1992, 1994, 1996, 1998,2000, 2002,2004,2006, 2008,2010,2012, 2014,2016, 2018] #1992, 1994, 1996, 1998,2000, 2002,2004,2006, 2008,2010,2012, 2014,2016, 2018
+    years_list= [ 2014, 2016] #2008 Rasters + 2010, 2012, 2014, 2016
+    #1992, 1994, 1996, 1998,2000, 2002,2004,2006, 2008,2010,2012, 2014,2016, 2018
     # 1990, 1992, 1994, 1996, 1998,2000, 2002,2004,2006, 2008,2010,2012, 2014,2016, 2018
     for year in years_list:
         temp_shp_path = ancillary_POPdata_folder_path + "/{}/temp_shp".format(year)
@@ -36,15 +35,18 @@ def process_data(ancillary_data_folder_path, ancillary_POPdata_folder_path, gdal
         else: 
             print("------------------------------ Folder already exists------------------------------")
        
-      
+        print("------------------------------ Initial Processing of Population Data {}------------------------------".format(year))
     # POPData : Initial Processing of csv files --------------------------------------------------------------------------------------
         if init_csv_to_shp == "yes": 
-            print("------------------------------ Initial Processing of Population Data ------------------------------")
+            print("------------------------------ Convert XLSX to shapefile ------------------------------")
             csvtoshp(ancillary_POPdata_folder_path,ancillary_data_folder_path,year, country_Orig)
             #sumCountries(ancillary_POPdata_folder_path,year, dictNLD)
-    
-        if init_shp_to_tif == "yes":
         
+        if init_calcPercentages == "yes":
+            print("------------------------------ Calculate percentage of migrant groups per total population and migration ------------------------------")
+            calc_Perc(ancillary_POPdata_folder_path, city,year)
+        
+        if init_shp_to_tif == "yes":
             print("------------------------------ Rasterize the Population Data {}------------------------------".format(year))
             shptoraster(ancillary_POPdata_folder_path,ancillary_data_folder_path, gdal_rasterize_path, city,year)
         # POPData : Merging_ applicable --------------------------------------------------------------------------------------

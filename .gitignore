@@ -2,6 +2,7 @@
 experiments/
 data/
 data_prep/ams_ProjectData/
+data_prep/ams_data_scripts_pop/correlations/corImages/
 data_prep/cph_ProjectData/
 data_prep/crc_ProjectData/
 data_prep/rom_ProjectData/

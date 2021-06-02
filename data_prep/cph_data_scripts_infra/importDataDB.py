@@ -3,6 +3,7 @@ import subprocess
 import psycopg2
 import gdal
 import geopandas as gpd
+from shapely.geometry import Polygon
 from rast_to_vec_grid import rasttovecgrid
 
 def initPostgis(pghost, pgport, pguser, pgpassword, pgdatabase, cur, conn,city):
@@ -78,36 +79,62 @@ def initialProcess(engine, gdal_rasterize_path, ancillary_data_folder_path,ancil
 
             print("------------------------------ Clipping Corine rasters by extent of case study area ------------------------------")
             csPath =  temp_shp_path + "/{0}_cs.shp".format(city)
-            print(csPath)
-            cmds = '{6}/gdalwarp.exe -of GTiff -cutline "{0}" -crop_to_cutline -dstalpha "{2}/{5}" "{3}/{4}_{5}"'.format(csPath,filePath,corinePath, temp_tif_path,city, file, gdal_rasterize_path)
+            cs = gpd.read_file(csPath)
+            minx, miny, maxx, maxy = cs.geometry.total_bounds
+            print(minx, miny, maxx, maxy)
+            p1 = Polygon([(minx, miny), (minx, maxy),  (maxx, maxy),(maxx, miny)])
+            bbox = gpd.GeoSeries(p1)
+            bbox.to_file(temp_shp_path + "/{}_bbox.shp".format(city), driver="ESRI Shapefile", crs="EPSG:3035")
+            bboxPath = temp_shp_path + "/{}_bbox.shp".format(city)
+            cmds = '{6}/gdalwarp.exe -of GTiff -cutline "{0}" -crop_to_cutline -dstalpha "{2}/{5}" "{3}/{4}_{5}"'.format(bboxPath,filePath,corinePath, temp_tif_path,city, file, gdal_rasterize_path, minx, maxx, miny, maxy)
             print(cmds)
             subprocess.call(cmds, shell=True)
     
     # ----- Splitting corine to categories ------------------------
     for file in os.listdir(temp_tif_path):
-        if file.endswith('.tif'):
+        if file.endswith('.tif') and file.startswith('{}_CLC_'.format(city)):
             print(file)
             filePath = temp_tif_path + "/" + file
 
-            print("------------------------------ Splitting Corine rasters to categories:artfc ------------------------------")
-            cmds = 'python {3}/gdal_calc.py -A "{0}" --A_band=1 --outfile="{1}/corine/artfc_{2}" --calc="logical_and(A<=11,A>0)"'.format(filePath,temp_tif_path, file, python_scripts_folder_path)
+            print("------------------------------ Splitting Corine rasters to categories: Urban Fabric (1.1) ------------------------------")
+            cmds = 'python {3}/gdal_calc.py -A "{0}" --A_band=1 --outfile="{1}/corine/urbfabr_{2}" --calc="logical_and(A<=2,A>0)"'.format(filePath,temp_tif_path, file, python_scripts_folder_path)
             subprocess.call(cmds, shell=True)
 
-            print("------------------------------ Splitting Corine rasters to categories:agric ------------------------------")
+            print("------------------------------ Splitting Corine rasters to categories: Industrial and commercial units and Other sites (1.2.1, 1.3) ------------------------------")
+            cmds = 'python {3}/gdal_calc.py -A "{0}" --A_band=1 --outfile="{1}/corine/industry_{2}" --calc="(A==3)*1 + logical_and(A>=7,A<=9)*1"'.format(filePath,temp_tif_path, file, python_scripts_folder_path)
+            subprocess.call(cmds, shell=True)
+
+            print("------------------------------ Splitting Corine rasters to categories: Transport (1.2.2-1.2.4) ------------------------------")
+            cmds = 'python {3}/gdal_calc.py -A "{0}" --A_band=1 --outfile="{1}/corine/transp_{2}" --calc="logical_and(A<=6,A>=4)"'.format(filePath,temp_tif_path, file, python_scripts_folder_path)
+            subprocess.call(cmds, shell=True)
+
+            print("------------------------------ Splitting Corine rasters to categories: Agriculture ------------------------------")
             cmds = 'python {3}/gdal_calc.py -A "{0}" --A_band=1 --outfile="{1}/corine/agric_{2}" --calc="logical_and(A<=22,A>=12)"'.format(filePath,temp_tif_path, file, python_scripts_folder_path)
             subprocess.call(cmds, shell=True)
 
-            print("------------------------------ Splitting Corine rasters to categories ------------------------------")
-            cmds = 'python {3}/gdal_calc.py -A "{0}" --A_band=1 --outfile="{1}/corine/fonat_{2}" --calc="logical_and(A<=34,A>=23)"'.format(filePath,temp_tif_path, file, python_scripts_folder_path)
+            #print("------------------------------ Splitting Corine rasters to categories: Forests ------------------------------")
+            #cmds = 'python {3}/gdal_calc.py -A "{0}" --A_band=1 --outfile="{1}/corine/fonat_{2}" --calc="logical_and(A<=34,A>=23)"'.format(filePath,temp_tif_path, file, python_scripts_folder_path)
+            #subprocess.call(cmds, shell=True)
+
+            print("------------------------------ Splitting Corine rasters to categories: Forests and Urban Grean Spaces and Leisure ------------------------------")
+            cmds = 'python {3}/gdal_calc.py -A "{0}" --A_band=1 --outfile="{1}/corine/greenSpaces_{2}" --calc="logical_and(A>=10,A<=11)*1 + logical_and(A<=34,A>=23)*1"'.format(filePath,temp_tif_path, file, python_scripts_folder_path)
             subprocess.call(cmds, shell=True)
 
-            print("------------------------------ Splitting Corine rasters to categories:wetln ------------------------------")
-            cmds = 'python {3}/gdal_calc.py -A "{0}" --A_band=1 --outfile="{1}/corine/wetln_{2}" --calc="logical_and(A<=39,A>=35)"'.format(filePath,temp_tif_path, file, python_scripts_folder_path)
+            #print("------------------------------ Splitting Corine rasters to categories:wetlands ------------------------------")
+            #cmds = 'python {3}/gdal_calc.py -A "{0}" --A_band=1 --outfile="{1}/corine/wetln_{2}" --calc="logical_and(A<=39,A>=35)"'.format(filePath,temp_tif_path, file, python_scripts_folder_path)
+            #subprocess.call(cmds, shell=True)
+
+            print("------------------------------ Splitting Corine rasters to categories: Water Bodies and Wetlands------------------------------")
+            cmds = 'python {3}/gdal_calc.py -A "{0}" --A_band=1 --outfile="{1}/corine/water_{2}" --calc="logical_and(A<=44,A>=35)"'.format(filePath,temp_tif_path, file, python_scripts_folder_path)
             subprocess.call(cmds, shell=True)
 
-            print("------------------------------ Splitting Corine rasters to categories:water ------------------------------")
-            cmds = 'python {3}/gdal_calc.py -A "{0}" --A_band=1 --outfile="{1}/corine/water_{2}" --calc="logical_and(A<=44,A>=40)"'.format(filePath,temp_tif_path, file, python_scripts_folder_path)
+            #As the water bodies do not include the port of Copenhagen, it gets combined with other layer --> percentages of water cover 
+            waterPerc = temp_tif_path + "/cph_water_cover.tif"
+            print("------------------------------ Splitting Corine rasters to categories:Water Bodies and Wetlands Combines with water cover (percentages) produced in Postgres with (vectors) lakes, wetlands and sea  ------------------------------")
+            cmds = 'python {3}/gdal_calc.py -A "{1}/corine/water_{2}" -B "{4}" --A_band=1 --B_band=1 --outfile="{1}/corine/waterComb_{2}" --calc="maximum(A*100, B)/100"'.format(filePath,temp_tif_path, file, python_scripts_folder_path, waterPerc)
             subprocess.call(cmds, shell=True)
+
+
             
     # ----- Creating Grid ------------------------
     print("------------------------------ Creating Grid ------------------------------")
@@ -122,7 +149,7 @@ def initialProcess(engine, gdal_rasterize_path, ancillary_data_folder_path,ancil
     miny = maxy + geoTransform[5] * data.RasterYSize
     data = None
 
-    # Creating polygon grid that matches the population grid and the corine-----------------------------------------------------------
+    """# Creating polygon grid that matches the population grid and the corine-----------------------------------------------------------
     print("------------------------------ Creating vector grid for {0} ------------------------------".format(city))
     outpath = temp_shp_path + "/{0}_grid.shp".format(city)
     rasttovecgrid(outpath, minx, maxx, miny, maxy, 100, 100)
@@ -172,7 +199,7 @@ def initialProcess(engine, gdal_rasterize_path, ancillary_data_folder_path,ancil
                     ,0 ,'endcap=square join=mitre') as geom FROM {0}_grid;".format(city))
         conn.commit()
     else:
-        print("{0} bounding box table already exists".format(city))    
+        print("{0} bounding box table already exists".format(city))    """
 
 """def extract_featuresGDB(pghost, pguser, pgpassword, pgdatabase, listFeatures, GDB_path):
     for feature in listFeatures:

@@ -7,6 +7,18 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 %matplotlib inline
 
+from qgis.analysis import QgsZonalStatistics
+#specify polygon shapefile vector
+polygonLayer = QgsVectorLayer('C:/Users/NM12LQ/OneDrive - Aalborg Universitet/PopNetV2/data_prep/ams_ProjectData/AncillaryData/adm/neighborhood.shp', 'zonepolygons', "ogr") 
+
+# specify raster filename
+rasterFilePath = 'C:/Users/NM12LQ/OneDrive - Aalborg Universitet/PopNetV2/data_prep/ams_ProjectData/PopData/2018/temp_tif/l1_totalpop.tif'
+
+# usage - QgsZonalStatistics (QgsVectorLayer *polygonLayer, const QString &rasterFile, const QString &attributePrefix="", int rasterBand=1)
+zoneStat = QgsZonalStatistics (polygonLayer, rasterFilePath, 'pre-', 1)
+zoneStat.calculateStatistics(None)
+
+
 city='cph'
 years = [1990,1992, 1994, 1996, 1998, 2000, 2002, 2004, 2006, 2008, 2010, 2012, 2014, 2016, 2018] #1990,1992, 1994, 1996, 1998, 2000, 2002, 2004, 2006, 2008, 2010, 2012, 2014, 2016, 2018
 cor_path= "K:/FUME/popnet/PoPNetV2/data_scripts/cph_Projectdata/correlations"
