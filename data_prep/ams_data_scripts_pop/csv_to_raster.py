@@ -8,6 +8,14 @@ import openpyxl
 from shapely.wkt import loads
 import numpy as np
 
+## ## ## ## ## ----- CREATE NEW FOLDER  ----- ## ## ## ## ##
+def createFolder(path):
+    if not os.path.exists(path):
+        print("------------------------------ Creating Folder : {} ------------------------------".format(path))
+        os.makedirs(path)
+    else: 
+        print("------------------------------ Folder already exists------------------------------")
+
 def csvtoshp(ancillary_POPdata_folder_path,ancillary_data_folder_path,year, dictionary):
     pathI = ancillary_POPdata_folder_path + "/process02/{}.xlsx".format(year)
     dfI = pd.read_excel(pathI, header=0)
@@ -86,9 +94,8 @@ def calc_Perc(ancillary_POPdata_folder_path, city,year):
     frame.drop('Z1_totalMig', axis=1, inplace=True)
     frame.to_file(ancillary_POPdata_folder_path + "/{0}/temp_shp/{0}_dataVectorGridDivs.geojson".format(year),driver='GeoJSON',crs="EPSG:3035")
 
-
-def shptoraster(ancillary_POPdata_folder_path,ancillary_data_folder_path, gdal_rasterize_path, city,year):
-    # Getting extent of ghs pop raster
+def shptoraster(ancillary_POPdata_folder_path,ancillary_data_folder_path, gdal_rasterize_path, city, year, dictionary):
+    ## ## ## ## ## ----- Getting extent of corine raster ----- ## ## ## ## ##  
     data = gdal.Open(os.path.dirname(ancillary_data_folder_path) + "/temp_tif/{0}_CLC_2012_2018.tif".format(city))
     wkt = data.GetProjection()
     geoTransform = data.GetGeoTransform()
@@ -99,20 +106,78 @@ def shptoraster(ancillary_POPdata_folder_path,ancillary_data_folder_path, gdal_r
     data = None
     xres=100
     yres=100
-    # Rasterizing layers
-    src_file = ancillary_POPdata_folder_path + "/{0}/temp_shp/{0}_dataVectorGrid.geojson".format(year)
-    df = gpd.read_file(src_file)
+
+    ## ## ## ## ## ----- Rasterize files ----- ## ## ## ## ##
+    src_file = ancillary_POPdata_folder_path + "/{0}/temp_shp/{0}_dataVectorGridSums.geojson".format(year)
+    df = gpd.read_file(src_file, crs="EPSG:3035")
+    disselect =["grid_geometry_epsg3035", "grid_id", "geometry"]
+    df_select = [x for x in df if not x in disselect]
+    ndf = df.loc[:, df_select]
+
+    countriesList = list()
+    for key in dictionary:
+        countriesList.extend(list(dictionary[key]))
+    #print(countriesList)
+
+    selectList = list()
+    for i in dictionary.keys():
+        selectList.append(i)
+    selectList.append("totalMig")
+
+    ## ## ## ## ## ----- Creating Necessary Folders ----- ## ## ## ## ##
     
-    selectList = ['grid_id','grid_geometry_epsg3035','geometry']
-    select = [x for x in df.columns if not x in selectList]
-    for column_name in select: 
+    dst_path_Countries = ancillary_POPdata_folder_path + "/{0}/temp_tif/countries".format(year)
+    createFolder(dst_path_Countries)
+    dst_path_Demographic = ancillary_POPdata_folder_path + "/{0}/temp_tif/demo".format(year)
+    createFolder(dst_path_Demographic)
+
+    emptryRasters=list()
+    ## ## ## ## ## ----- Rasterize files ----- ## ## ## ## ##
+    for column_name in ndf: 
         
-        print("Rasterizing {} layer".format(column_name))
-        dst_file = ancillary_POPdata_folder_path + "/{0}/temp_tif/{0}_{1}.tif".format(year, column_name)
-        cmd = '{0}/gdal_rasterize.exe -a {9} -te {1} {2} {3} {4} -tr {5} {6} "{7}" "{8}"'\
-            .format(gdal_rasterize_path, minx, miny, maxx, maxy, xres, yres, src_file, dst_file, column_name)
-        print(cmd) #-ot Integer64
-        subprocess.call(cmd, shell=True)
+        """if ndf["{}".format(column_name)].sum(axis=0) == 0:
+            print("----- No Raster created for : {} -----".format(column_name))
+            emptryRasters.append(column_name)
+        """ 
+        if column_name in selectList: 
+            dst_path_Regions = os.path.dirname(ancillary_POPdata_folder_path) + "/GeogrGroups/{0}".format(column_name)
+            createFolder(dst_path_Regions)
+            print("Rasterizing in GeogrGroups: {} layer".format(column_name))
+            dst_file = dst_path_Regions + "/{0}_{1}.tif".format(year, column_name)
+            cmd = '{0}/gdal_rasterize.exe -a "{9}" -te {1} {2} {3} {4} -tr {5} {6} {7} "{8}"'\
+                .format(gdal_rasterize_path, minx, miny, maxx, maxy, xres, yres, src_file, dst_file, column_name)
+            subprocess.call(cmd, shell=True)
+        
+        elif column_name == 'nld': 
+            print("Rasterizing in Countries: {} layer".format(column_name))
+            dst_file = dst_path_Countries + "/{0}_{1}.tif".format(year, column_name)
+            cmd = '{0}/gdal_rasterize.exe -a "{9}" -te {1} {2} {3} {4} -tr {5} {6} {7} "{8}"'\
+                .format(gdal_rasterize_path, minx, miny, maxx, maxy, xres, yres, src_file, dst_file, column_name)
+            subprocess.call(cmd, shell=True)
+
+        elif column_name in countriesList: 
+            print("Rasterizing in Countries: {} layer".format(column_name))
+            dst_file = dst_path_Countries + "/{0}_{1}.tif".format(year, column_name)
+            cmd = '{0}/gdal_rasterize.exe -a "{9}" -te {1} {2} {3} {4} -tr {5} {6} {7} "{8}"'\
+                .format(gdal_rasterize_path, minx, miny, maxx, maxy, xres, yres, src_file, dst_file, column_name)
+            #subprocess.call(cmd, shell=True)
+
+        else : 
+            print("Rasterizing in Demographic: {} layer".format(column_name))
+            dst_file = dst_path_Demographic + "/{0}_{1}.tif".format(year, column_name)
+            cmd = '{0}/gdal_rasterize.exe -a "{9}" -te {1} {2} {3} {4} -tr {5} {6} {7} "{8}"'\
+                .format(gdal_rasterize_path, minx, miny, maxx, maxy, xres, yres, src_file, dst_file, column_name)
+            subprocess.call(cmd, shell=True)
+
+    dst_path_Empty = os.path.dirname(ancillary_POPdata_folder_path) + "/emptyRaster"
+    createFolder(dst_path_Empty)    
+    #Create txt file with number of band --> Name of File
+    f = open(dst_path_Empty + "/{}_emptyRasters.txt".format(year), "w+")
+    str_files = " ".join(["{}".format(emptryRasters[i]) for i in range(len(emptryRasters))])
+    for i,each in enumerate(emptryRasters,start=1):
+        f.write("{1}.{2}".format(year, i,each) + "\n")
+    f.close()
+
 """
 def shptoraster(ancillary_POPdata_folder_path,ancillary_data_folder_path, gdal_rasterize_path, city,year):
     # Getting extent of ghs pop raster

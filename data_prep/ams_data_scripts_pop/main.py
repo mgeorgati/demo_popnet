@@ -20,11 +20,22 @@ city ='ams'
 # Initial preparation of Population data ("yes" / "no") csvTOtif
 
 #csv_to_shp --> dataVectorGrid, dataVectorGridSums
-init_csv_to_shp = "yes"
+init_csv_to_shp = "no"
 #Calculate Percentages --> dataVectorGridDivs
-init_calcPercentages= "yes"
+init_calcPercentages= "no"
+
 #Rasterize shapefiles: shp_to_tif
-init_shp_to_tif = "yes"
+init_shp_to_tif = "no"
+
+# Normalize columns based on max value in 1992
+init_calc_Norm = "no"
+#Rasterize Normalized
+init_shp_to_tif_Norm = "no"
+# Select the countries included in the trial
+select_Countries = "no"
+#Merge Normalized rasters
+merge_tifs_Norm = "yes"
+
 # Check if there are mismatches among the tif folders for socio-demographic variables
 create_empty_tif = "no"
 #Create Png from tif: tif_to_png
@@ -45,5 +56,5 @@ python_scripts_folder_path = r'C:/Users/NM12LQ/Anaconda3/envs/popnet_env/Scripts
 #path to folder with gdal_rasterize.exe
 gdal_rasterize_path = r'C:/Users/NM12LQ/Anaconda3/envs/popnet_env/Library/bin' #O:/projekter/PY000014_D/popnet_env/Library/bin
 
-process_data(ancillary_data_folder_path, ancillary_POPdata_folder_path, gdal_rasterize_path, init_csv_to_shp,init_calcPercentages, init_shp_to_tif, create_empty_tif, init_tif_to_png, merge_tifs, 
-             cph_area_path, city, python_scripts_folder_path)
+process_data(base_dir, ancillary_data_folder_path, ancillary_POPdata_folder_path, gdal_rasterize_path, init_csv_to_shp,init_calcPercentages, init_shp_to_tif, create_empty_tif, init_tif_to_png, merge_tifs, 
+            init_calc_Norm, init_shp_to_tif_Norm, select_Countries, merge_tifs_Norm, cph_area_path, city, python_scripts_folder_path)

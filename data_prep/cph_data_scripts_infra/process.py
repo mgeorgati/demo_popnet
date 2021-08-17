@@ -12,11 +12,14 @@ from calc_Streets import importStreets, createNetwork
 from calc_Rails import computeTrainIsochrones,calculateTrainCount
 from calc_Buses import computeBusIsochrones, calculateBusCount
 
+from calc_Schools import importToDBSchools, computeSchoolsIsochrones, calculateSchoolCount
+
 
 from DBtoRaster import psqltoshp, shptoraster
 
 def process_data( engine, pgpath, pghost, pgport, pguser, pgpassword, pgdatabase, ancillary_data_folder_path,ancillary_EUROdata_folder_path,cur,conn, city,country,nuts3_cd1, nuts3_cd2, temp_shp_path, temp_tif_path,temp_tif_corine, python_scripts_folder_path,gdal_rasterize_path,
-                    initExtensionPostGIS, initExtensionPGRouting,initImports, initImportProcess,init_shptoraster):
+                    initExtensionPostGIS, initExtensionPGRouting,initImports, initImportProcess,init_shptoraster,
+                    initBBRProcess_schools):
                     #init_waterProcess, init_streetProcess, init_trainProcess,init_busProcess,init_buildingsProcess,init_psqltoshp ,
     #Start total preparation time timer
     start_total_algorithm_timer = time.time()
@@ -47,6 +50,18 @@ def process_data( engine, pgpath, pghost, pgport, pguser, pgpassword, pgdatabase
     if initImportProcess == "yes": 
         print("------------------------------ IMPORT AND CREATE BASIC TABLES ------------------------------")
         initialProcess(engine, gdal_rasterize_path, ancillary_data_folder_path,ancillary_EUROdata_folder_path,pgpath, pghost, pgport, pguser, pgpassword,pgdatabase,conn, cur, nuts3_cd1, city,country, temp_shp_path, temp_tif_path, python_scripts_folder_path)
+
+    # Process BBR data --------------------------------------------------------------------------------------
+    ## ## ## ## ## ----- SCHOOLS  ----- ## ## ## ## ##
+    if initBBRProcess_schools == "yes":
+        print("------------------------------ IMPORT AND CREATE BASIC TABLES: BBR SCHOOLS ------------------------------")
+        years_list = [2014,2016,2018, 2020] #2002,2004,2006,2008,2010,2012,2014,2016,2018, 2020
+        for year in years_list:
+            importToDBSchools(ancillary_data_folder_path, city, cur, engine, year)
+            computeSchoolsIsochrones(ancillary_data_folder_path, city, cur, conn, year)
+            calculateSchoolCount(ancillary_data_folder_path, city, conn, cur, year)
+
+
 
     """if initImportProcess == "yes":    
         

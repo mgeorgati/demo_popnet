@@ -54,7 +54,7 @@ initExtensionPostGIS = "no"
 initExtensionPGRouting = "no"
 
 #-------- PROCESS: Import Data to Postgres Database --------
-initImports = "yes"
+initImports = "no"
 initImportProcess = "no"    
 
 #-------- PROCESS: WATER --------
@@ -65,7 +65,7 @@ init_streetProcess = "no" # This is required before railways and busses to creat
 
 #-------- PROCESS: RAILWAYS --------
 # Creating Isochones for each year for train stations and counting the accessibility of each cell  
-init_trainProcess = "no" 
+init_tramProcess = "yes" 
 
 #-------- PROCESS: BUSES --------
 # Creating Isochones for each year for bus stops and counting the accessibility of each cell in grid
@@ -104,4 +104,4 @@ temp_tif_corine = parent_path + "/data_prep/{0}_ProjectData/temp_tif/corine".for
 
 
 process_data(engine, pgpath, pghost, pgport, pguser, pgpassword, pgdatabase, ancillary_data_folder_path,ancillary_EUROdata_folder_path,cur,conn, city,country,nuts3_cd1, temp_shp_path, temp_tif_path, temp_tif_corine, python_scripts_folder_path, gdal_rasterize_path,
-                    initExtensionPostGIS, initExtensionPGRouting,initImports, initImportProcess, init_waterProcess, init_streetProcess, init_trainProcess,init_busProcess,init_psqltoshp ,init_shptoraster) #init_buildingsProcess, 
+                    initExtensionPostGIS, initExtensionPGRouting,initImports, initImportProcess, init_waterProcess, init_streetProcess, init_tramProcess,init_busProcess,init_psqltoshp ,init_shptoraster) #init_buildingsProcess, 

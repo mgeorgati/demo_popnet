@@ -7,15 +7,15 @@ import osr
 import psycopg2
 import time
 from importDataDB import initPostgis, initPgRouting, initialimports, initialProcess#, importWater, importTrainStations,importBusStops, import_buildings
-#from calc_Water import calculateWater
-#from calc_Streets import importStreets, createNetwork
-#from calc_Rails import computeTrainIsochrones,calculateTrainCount
+from calc_Water import processCanals, calculateWater# importWaterLayers #calculateWater
+from calc_Streets import createNetwork
+from calc_Rails import computeTrainIsochrones,calculateTrainCount, computeTrainIsochronesWalk,calculateTrainCountWalk
 #from calc_Buses import computeBusIsochrones, calculateBusCount
 
 from DBtoRaster import psqltoshp, shptoraster
 
 def process_data(engine, pgpath, pghost, pgport, pguser, pgpassword, pgdatabase, ancillary_data_folder_path,ancillary_EUROdata_folder_path,cur,conn, city,country,nuts3_cd1, temp_shp_path, temp_tif_path,temp_tif_corine, python_scripts_folder_path,gdal_rasterize_path,
-                    initExtensionPostGIS, initExtensionPGRouting,initImports, initImportProcess, init_waterProcess, init_streetProcess, init_trainProcess,init_busProcess,init_psqltoshp ,init_shptoraster):
+                    initExtensionPostGIS, initExtensionPGRouting,initImports, initImportProcess, init_waterProcess, init_streetProcess, init_tramProcess,init_busProcess,init_psqltoshp ,init_shptoraster):
                     #init_buildingsProcess,
     #Start total preparation time timer
     start_total_algorithm_timer = time.time()
@@ -47,10 +47,38 @@ def process_data(engine, pgpath, pghost, pgport, pguser, pgpassword, pgdatabase,
         print("------------------------------ IMPORT AND CREATE BASIC TABLES ------------------------------")
         initialProcess(engine, gdal_rasterize_path, ancillary_data_folder_path,ancillary_EUROdata_folder_path,pgpath, pghost, pgport, pguser, pgpassword,pgdatabase,conn, cur, nuts3_cd1, city,country, temp_shp_path, temp_tif_path, python_scripts_folder_path)
     
-    """# Import ocean table and create the subdividd waterbodies table in combination with lakes 
+    # Processing WATER data to postgres--------------------------------------------------------------------------------------
+    if init_waterProcess == "yes":
+        #importWaterLayers(ancillary_data_folder_path, temp_shp_path, city)
+        
+        #processCanals(ancillary_data_folder_path, temp_shp_path, city, country, engine, cur )
+        calculateWater(city,country,conn,cur)
+        print("------------------------------ CREATING Water ------------------------------")
+        #importWater(ancillary_data_folder_path, city, country, engine)
+        print("------------------------------ CREATING Water ------------------------------")
+        #calculateWater(city,country,conn,cur)
+
+        # Import ocean table and create the subdividd waterbodies table in combination with lakes 
         print("------------------------------ IMPORT AND CREATE TABLE FOR WATERBODIES ------------------------------")
         #importWater(cur,conn)
     
+    # Processing STREET data to postgres--------------------------------------------------------------------------------------
+    if init_streetProcess == "yes":
+        print("------------------------------ CREATING NETWORK ------------------------------")
+        createNetwork(pgpath,pghost,pgport, pguser, pgpassword, pgdatabase,ancillary_data_folder_path,cur,conn,engine, city)
+    
+    # Processing Train Station data to postgres--------------------------------------------------------------------------------------
+    if init_tramProcess == "yes":       
+        print("------------------------------ COMPUTING ISOCHRONES FOR TRAM STATIONS BIKING------------------------------")
+        #computeTrainIsochrones(ancillary_data_folder_path, city, cur, conn)
+        print("------------------------------ COMPUTING COUNT OF ISOCHRONES FOR CELL IN GRID FOR TRAIN STATIONS {0} ------------------------------")
+        #calculateTrainCount(ancillary_data_folder_path, city, conn, cur)
+        print("------------------------------ COMPUTING ISOCHRONES FOR TRAIN STATIONS WALKING------------------------------")
+        computeTrainIsochronesWalk(ancillary_data_folder_path, city, cur, conn)
+        print("------------------------------ COMPUTING COUNT OF ISOCHRONES FOR CELL IN GRID FOR TRAIN STATIONS {0} ------------------------------")
+        calculateTrainCountWalk(ancillary_data_folder_path, city, conn, cur)
+
+    """
     # Import table for train stations and create table for the case study 
         print("------------------------------ IMPORT AND CREATE TABLE FOR TRAIN STATIONS ------------------------------")
         #importTrainStations(ancillary_data_folder_path,cur,conn)

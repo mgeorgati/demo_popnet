@@ -57,7 +57,7 @@ initExtensionPGRouting = "no"
 
 #-------- PROCESS: Import Data to Postgres Database --------
 initImports = "no"
-initImportProcess = "yes" 
+initImportProcess = "no" 
 
 #-------- PROCESS: WATER --------
 init_waterProcess = "no"
@@ -80,6 +80,11 @@ init_psqltoshp = "no"
 #-------- PROCESS: RASTERIZE --------
 # Save processed data from SHP to Raster
 init_shptoraster = "no" 
+
+#-------- PROCESS: BBR DATA --------
+# Process BBR data --------------------------------------------------------------------------------------
+## ## ## ## ## ----- SCHOOLS  ----- ## ## ## ## ##
+initBBRProcess_schools = "yes"
 
 # choose processes to run ----------------------------------------------------------------------------------------------
 # Initial preparation of Population data ("yes" / "no") csvTOdbTOshpTOtif
@@ -107,4 +112,5 @@ temp_tif_corine = parent_path + "/data_prep/{0}_ProjectData/temp_tif/corine".for
 
 
 process_data(engine, pgpath, pghost, pgport, pguser, pgpassword, pgdatabase, ancillary_data_folder_path,ancillary_EUROdata_folder_path, cur, conn, city,country,nuts3_cd1, nuts3_cd2, temp_shp_path, temp_tif_path, temp_tif_corine,python_scripts_folder_path, gdal_rasterize_path,
-    initExtensionPostGIS, initExtensionPGRouting, initImports, initImportProcess, init_shptoraster) #init_waterProcess, init_streetProcess, init_trainProcess, init_busProcess, init_buildingsProcess, init_psqltoshp ,
+    initExtensionPostGIS, initExtensionPGRouting, initImports, initImportProcess, init_shptoraster,
+    initBBRProcess_schools) #init_waterProcess, init_streetProcess, init_trainProcess, init_busProcess, init_buildingsProcess, init_psqltoshp ,

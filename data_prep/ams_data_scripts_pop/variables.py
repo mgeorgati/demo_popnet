@@ -28,14 +28,14 @@ country_Orig = {"Oceania" : ["aus","cxr", "cck", "hmd", "nzl", "nfk",
                                 "jey","imn","ltu","ggy","ala", "dnk"], #16 with Channel Islands, missing Sark
             "EuropeEU": ["lie","nor", "isl","che",
                         "gbr",
-                        "bgr","cze","hun","rou","svk","dnk","est","fin","irl","cyp"
+                        "bgr","cze","hun","rou","svk","dnk","est","fin","irl","cyp",
                         "swe","lva","hrv","grc","ita","mlt","prt","svn","esp","aut",
                         "bel","fra","deu","lux","mco","nld","pol"],#32
             "EuropeNotEU": [ "blr","mda","rus", "ukr", "ala", "ggy", "jey", "fro", "imn","sjm",
                                 "alb", "and", "bih", "gib", "vat", "mne", "mkd", "smr", "srb"],
             "EuropeEUnoLocal": ["lie","nor", "isl","che",
                         "gbr",
-                        "bgr","cze","hun","rou","svk","dnk","est","fin","irl","cyp"
+                        "bgr","cze","hun","rou","svk","dnk","est","fin","irl","cyp",
                         "swe","lva","hrv","grc","ita","mlt","prt","svn","esp","aut",
                         "bel","fra","deu","lux","mco"],#"nld"
             

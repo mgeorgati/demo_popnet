@@ -1,10 +1,18 @@
 # Folder ignores
-experiments/
+
 data/
 data_prep/ams_ProjectData/
 data_prep/ams_data_scripts_pop/correlations/corImages/
+data_prep/cph_data_scripts_pop/totalMigPerPop
+data_prep/cph_data_scripts_pop/PySAL
 data_prep/cph_ProjectData/
 data_prep/crc_ProjectData/
 data_prep/rom_ProjectData/
 data_prep/euroData/
+model/cph_model/data
+model/cph_model/experiments/
 model/cph_model/summarizeResults
+model/ams_model/data
+model/ams_model/experiments/
+model/ams_model/summarizeResults
+
