@@ -91,6 +91,8 @@ def calc_Perc(ancillary_POPdata_folder_path, city,year):
         # Calculate percentage of each migrant group per total migration
         frame['Z1_{}'.format(i)] = (df['{}'.format(i)]/df['totalMig'])*100 #totalMig
     
+    # Calculate percentage of each migrant group per total population
+    frame['Z0_nld'] = (df['nld']/df['l1_totalpop'])*100 #totalPop
     frame.drop('Z1_totalMig', axis=1, inplace=True)
     frame.to_file(ancillary_POPdata_folder_path + "/{0}/temp_shp/{0}_dataVectorGridDivs.geojson".format(year),driver='GeoJSON',crs="EPSG:3035")
 
@@ -139,6 +141,7 @@ def shptoraster(ancillary_POPdata_folder_path,ancillary_data_folder_path, gdal_r
             print("----- No Raster created for : {} -----".format(column_name))
             emptryRasters.append(column_name)
         """ 
+        #each region of origin
         if column_name in selectList: 
             dst_path_Regions = os.path.dirname(ancillary_POPdata_folder_path) + "/GeogrGroups/{0}".format(column_name)
             createFolder(dst_path_Regions)
@@ -146,7 +149,7 @@ def shptoraster(ancillary_POPdata_folder_path,ancillary_data_folder_path, gdal_r
             dst_file = dst_path_Regions + "/{0}_{1}.tif".format(year, column_name)
             cmd = '{0}/gdal_rasterize.exe -a "{9}" -te {1} {2} {3} {4} -tr {5} {6} {7} "{8}"'\
                 .format(gdal_rasterize_path, minx, miny, maxx, maxy, xres, yres, src_file, dst_file, column_name)
-            subprocess.call(cmd, shell=True)
+            #subprocess.call(cmd, shell=True)
         
         elif column_name == 'nld': 
             print("Rasterizing in Countries: {} layer".format(column_name))
@@ -154,7 +157,7 @@ def shptoraster(ancillary_POPdata_folder_path,ancillary_data_folder_path, gdal_r
             cmd = '{0}/gdal_rasterize.exe -a "{9}" -te {1} {2} {3} {4} -tr {5} {6} {7} "{8}"'\
                 .format(gdal_rasterize_path, minx, miny, maxx, maxy, xres, yres, src_file, dst_file, column_name)
             subprocess.call(cmd, shell=True)
-
+        #each country seperately
         elif column_name in countriesList: 
             print("Rasterizing in Countries: {} layer".format(column_name))
             dst_file = dst_path_Countries + "/{0}_{1}.tif".format(year, column_name)
@@ -178,8 +181,8 @@ def shptoraster(ancillary_POPdata_folder_path,ancillary_data_folder_path, gdal_r
         f.write("{1}.{2}".format(year, i,each) + "\n")
     f.close()
 
-"""
-def shptoraster(ancillary_POPdata_folder_path,ancillary_data_folder_path, gdal_rasterize_path, city,year):
+
+def shptorasterPercentages(ancillary_POPdata_folder_path,ancillary_data_folder_path, gdal_rasterize_path, city,year):
     # Getting extent of ghs pop raster
     data = gdal.Open(os.path.dirname(ancillary_data_folder_path) + "/temp_tif/{0}_CLC_2012_2018.tif".format(city))
     wkt = data.GetProjection()
@@ -196,12 +199,23 @@ def shptoraster(ancillary_POPdata_folder_path,ancillary_data_folder_path, gdal_r
     df = gpd.read_file(src_file)
     
     for column_name in df.columns:
-        if column_name.startswith('Z0_') or  column_name.startswith('Z1_'):
+        if column_name.startswith('Z0_'):
             print("Rasterizing {} layer".format(column_name))
-            dst_file = ancillary_POPdata_folder_path + "/{0}/temp_tifPercentages/{0}_{1}.tif".format(year, column_name)
+            dst_Path = ancillary_POPdata_folder_path + "/{0}/temp_tif_Z0".format(year)
+            createFolder(dst_Path)
+            dst_file = dst_Path + "/{0}_{1}.tif".format(year, column_name)
             cmd = '{0}/gdal_rasterize.exe -a {9} -te {1} {2} {3} {4} -tr {5} {6} "{7}" "{8}"'\
                 .format(gdal_rasterize_path, minx, miny, maxx, maxy, xres, yres, src_file, dst_file, column_name)
             print(cmd) #-ot Integer64
-            subprocess.call(cmd, shell=True)"""
+            subprocess.call(cmd, shell=True)
+        elif  column_name.startswith('Z1_'):
+            print("Rasterizing {} layer".format(column_name))
+            dst_Path = ancillary_POPdata_folder_path + "/{0}/temp_tif_Z1".format(year)
+            createFolder(dst_Path)
+            dst_file = dst_Path + "/{0}_{1}.tif".format(year, column_name)
+            cmd = '{0}/gdal_rasterize.exe -a {9} -te {1} {2} {3} {4} -tr {5} {6} "{7}" "{8}"'\
+                .format(gdal_rasterize_path, minx, miny, maxx, maxy, xres, yres, src_file, dst_file, column_name)
+            print(cmd) #-ot Integer64
+            subprocess.call(cmd, shell=True)
         
 

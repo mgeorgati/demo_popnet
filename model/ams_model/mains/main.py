@@ -5,8 +5,8 @@ import osr
 import sys
 import numpy as np
 import time
-
-sys.path.append("K:/FUME/popnet/PoPNetV2")
+print(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from data_loader.data_generator import DataGenerator, PrepData, PrepTrainTest
 from data_loader.data_loader import DataLoader
@@ -44,13 +44,13 @@ def remove_files(trial_dir,country):
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 config_dir = base_dir + '/configs'
 
-countries = [ "EurEUNoL","West_Asia","South_Asia"] 
+countries = [ "Latin_America_and_the_Caribbean","EurEUNoLocal","Western_Asia"] # <<<<< ----- CHANGE HERE ----- >>>>>
 #"Centr_Asia","East_Asia","EurNotEU", "Latin_Amer", "North_Afr"
 # "Latin_America_and_the_Caribbean","Northern_Africa", "Northern_America", "Northern_Europe","Oceania","Southern_Asia","Southern_Europe", "Southern-Eastern_Asia", "Sub-Saharan_Africa", "Western_Asia", "Western_Europe"
 #"Eastern_Europe", "Latin_America_and_the_Caribbean",
 #countries=[] #,''pol','deu','tur' 'irq','pol','deu','tur'
-city="cph"
-trialNo = "trial02"
+city="ams"
+trialNo = "trial01" # <<<<< ----- CHANGE HERE ----- >>>>>
 trial_dir = base_dir + '/data/{0}/{1}'.format(city,trialNo)
 
 # ------- CAREFUL HERE !!!! -------
@@ -72,12 +72,13 @@ def run_all():
         data_dir = base_dir + '/data/{0}/{1}/{2}'.format(city,trialNo,country)
         #data_dir = base_dir + '/data/{}'.format(config.exp_name)
         
-        #print('*****Training: {}*****'.format(country))
-        #tf.reset_default_graph()
-        #train_model(data_dir,config)
-        print('*****Producing outcome: {}*****'.format(country))
+        # <<<<< ----- CHANGE HERE ----- >>>>>
+        print('*****Training: {}*****'.format(country))
         tf.reset_default_graph()
-        use_model(data_dir,config)        
+        train_model(data_dir,config)
+        #print('*****Producing outcome: {}*****'.format(country))
+        #tf.reset_default_graph()
+        #use_model(data_dir,config)        
 
 def train_model(data_dir,config):
     #Start total preparation time timer

@@ -5,8 +5,7 @@ import psycopg2
 import time
 import geopandas as gpd
 from owslib.wfs import WebFeatureService
-
-
+"""
 def importWaterLayers(ancillary_data_folder_path, temp_shp_path, city):
     bbox = gpd.read_file(temp_shp_path + "/{}_bbox.geojson".format(city))
     geoPortal = ["hy-p", "sr", "vin", "nl" ] # "hy-p", "sr", "vin", "nl"
@@ -24,16 +23,14 @@ def importWaterLayers(ancillary_data_folder_path, temp_shp_path, city):
                 print(ndf.head(3))
                 name = content.split(":")[-1]
                 print(content, name)
-                ndf.to_file(ancillary_data_folder_path + "/NLD_geoportal/{0}_{1}_{2}.geojson".format(city,i,name), driver="GeoJSON", crs='epsg:3035')
+                ndf.to_file(ancillary_data_folder_path + "/NLD_geoportal/{0}_{1}_{2}.geojson".format(city,i,name), driver="GeoJSON", crs='epsg:3035')"""
 
 def processCanals(ancillary_data_folder_path, temp_shp_path, city, country, engine, cur ):
-    waterCanals = gpd.read_file(ancillary_data_folder_path + "/water/noord-holland-latest-free.shp/gis_osm_water_a_free_1.shp")
+    waterCanals = gpd.read_file(ancillary_data_folder_path + "/OSM/noord-holland-latest-free.shp/gis_osm_water_a_free_1.shp")
     bbox = gpd.read_file(temp_shp_path + "/{}_bbox.geojson".format(city))
     waterCanals = waterCanals.to_crs('epsg:3035')
     ndf = gpd.clip(waterCanals, bbox)
     ndf.to_postgis('{0}_water'.format(city),engine)
-        
-    
 
 def calculateWater(city,country,conn,cur):
     print("Set Coordinate system for GRID")
@@ -211,5 +208,49 @@ def calculateWater(city,country,conn,cur):
     # drop subdivided water table
     cur.execute("DROP TABLE subdivided_{0}_water;".format(city))  # 22 ms
     conn.commit()
+
+def water_dbTOtif(city, gdal_rasterize_path, cur, conn, engine, xres, yres, temp_shp_path, temp_tif_path, python_scripts_folder_path):
+    print("Alter water cover column")
+    cur.execute("UPDATE {0}_cover_analysis SET water_cover = 100 WHERE water_cover > 100  ".format( city))
+    conn.commit()
+    # Create SQL Query
+    sql = "SELECT id, water_cover, geometry FROM {0}_cover_analysis".format( city)
+    # Read the data with Geopandas
+    gdf = gpd.GeoDataFrame.from_postgis(sql, engine, geom_col='geometry' )
+    print(gdf.head(4))    
+
+    # exporting water cover from postgres
+    print("Exporting {0} water_cover from postgres".format(city))
+    gdf.to_file(temp_shp_path + "/{0}_water_cover.gpkg".format(city),  driver="GPKG")
+    
+    # Getting extent of ghs pop raster
+    data = gdal.Open(temp_tif_path + "/{0}_CLC_2012_2018.tif".format(city))
+    wkt = data.GetProjection()
+    geoTransform = data.GetGeoTransform()
+    minx = geoTransform[0]
+    maxy = geoTransform[3]
+    maxx = minx + geoTransform[1] * data.RasterXSize
+    miny = maxy + geoTransform[5] * data.RasterYSize
+    data = None
+    
+    # Rasterizing water_cover layer
+    print("Rasterizing water_cover layer")
+    src_file = temp_shp_path +"/{0}_water_cover.gpkg".format(city)
+    dst_file = temp_tif_path +"/{0}_water_cover.tif".format(city)
+    cmd = '{0}/gdal_rasterize.exe -a water_cover -te {1} {2} {3} {4} -tr {5} {6} {7} {8}'\
+        .format(gdal_rasterize_path, minx, miny, maxx, maxy, xres, yres, src_file, dst_file)
+    subprocess.call(cmd, shell=True)
+    
+    for file in os.listdir(temp_tif_path + "/corine/"):
+        if file.endswith('.tif') and file.startswith('water_{}_CLC_'.format(city)):
+            name = file.split("_", 1)[1]
+            print(name)
+            #As the water bodies of the Corine do not include details of Amsterdam, it gets combined with other layer --> percentages of water cover 
+            print("------------------------------ Splitting Corine rasters to categories:Water Bodies and Wetlands Combines with water cover (percentages) produced in Postgres with (vectors) lakes, wetlands and sea  ------------------------------")
+            cmds = """python {2}/gdal_calc.py -A "{0}/corine/water_{1}" -B "{3}"  \
+                --A_band=1 --B_band=1 --outfile="{0}/corine/waterComb_{1}" \
+                --calc="maximum(A*100, B)/100" """.format(temp_tif_path, name, python_scripts_folder_path, dst_file)
+            subprocess.call(cmds, shell=True)
+
 
     

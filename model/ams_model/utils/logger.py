@@ -49,7 +49,7 @@ class Logger():
 
     def log_config(self):
         # Saves the configurations for the current sub_experiment
-        with open(os.path.join(os.path.sep, base_dir, "experiments",  self.config.city, self.config.trial_name, self.config.exp_name, self.config.sub_exp, "config.txt"), "a") as f:
+        with open(os.path.join(os.path.sep, base_dir, "experiments",  self.config.trial_name, self.config.exp_name, self.config.sub_exp, "config.txt"), "a") as f:
             f.write('Experiment: ' + self.config.exp_name)
             f.write('\n')
             f.write('Sub experiment: ' + self.config.sub_exp)

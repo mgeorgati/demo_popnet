@@ -1,3 +1,31 @@
+import os
+import psycopg2
+from sqlalchemy import create_engine
+base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+city ='ams'
+# Paths for the Population Data --------------------------------------------------------------
+#path to ancillary data folder
+ancillary_data_folder_path = base_dir + "/data_prep/{}_ProjectData/AncillaryData".format(city)
+ancillary_POPdata_folder_path = base_dir + "/data_prep/{}_ProjectData/PopData".format(city)
+
+# Specify database information -----------------------------------------------------------------------------------------
+# path to postgresql bin folder
+pgpath = r";C:/Program Files/PostgreSQL/9.5/bin"
+pghost = 'localhost'
+pgport = '5432'
+pguser = 'postgres'
+pgpassword = 'postgres'
+pgdatabase = '{}_data'.format(city)
+engine = create_engine(f'postgresql://{pguser}:{pgpassword}@{pghost}:{pgport}/{pgdatabase}?gssencmode=disable')
+conn = psycopg2.connect(database=pgdatabase, user=pguser, host=pghost, password=pgpassword,sslmode="disable",gssencmode="disable")
+cur = conn.cursor()
+
+# Other Paths to necessary python scripts and functions ----------------------------------------------------------------
+# path to folder containing gdal_calc.py and gdal_merge.py
+python_scripts_folder_path = r'C:/Users/NM12LQ/Anaconda3/envs/popnet_env/Scripts' #O:/projekter/PY000014_D/popnet_env/Scripts
+#path to folder with gdal_rasterize.exe
+gdal_rasterize_path = r'C:/Users/NM12LQ/Anaconda3/envs/popnet_env/Library/bin' #O:/projekter/PY000014_D/popnet_env/Library/bin
+
 country_Orig = {"Oceania" : ["aus","cxr", "cck", "hmd", "nzl", "nfk",
                         "fji","png","slb","vut", "ncl",
                         "gum","kir","mhl","fsm","nru","mnp","plw","umi",

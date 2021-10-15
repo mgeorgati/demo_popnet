@@ -87,37 +87,7 @@ def initialimports(engine,conn, cur, ancillary_data_folder_path,ancillary_EUROda
     districtsLAEA.crs = 'epsg:3035'
     districtsLAEA.to_file(temp_shp_path + "/{}_cs.shp".format(city), driver="ESRI Shapefile", crs='epsg:3035')
     
-    #_______________________RAILWAYS________________________    
-    railwaysPath = ancillary_data_folder_path + "/railways/trammetro2018.json"
-    railways = gpd.read_file(railwaysPath)
-    railways = railways.to_crs('epsg:3035')
-    # Create Table for Railway
-    print("---------- Creating table for city, if it doesn't exist ----------")
-    print("Checking {0} Case Study table".format(city))
-    cur.execute("SELECT EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = '{0}_train');".format(city))
-    check = cur.fetchone()
-    if check[0] == True:
-        print("{0} railway table already exists".format(city))
 
-    else:
-        print("Creating {0} railway ".format(city))
-        railways.to_postgis('{0}_train'.format(city),engine)
-
-    #_______________________RAILWAYS________________________    
-    railwaysstPath = ancillary_data_folder_path + "/railways/trammetrost2018.json"
-    railwaysst = gpd.read_file(railwaysstPath)
-    railwaysst = railwaysst.to_crs('epsg:3035')
-    # Create Table for Railway
-    print("---------- Creating table for city, if it doesn't exist ----------")
-    print("Checking {0} Case Study table".format(city))
-    cur.execute("SELECT EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = '{0}_trainst');".format(city))
-    check = cur.fetchone()
-    if check[0] == True:
-        print("{0} railway Stops table already exists".format(city))
-
-    else:
-        print("Creating {0} railway ".format(city))
-        railwaysst.to_postgis('{0}_trainst'.format(city),engine)
 
     #_______________________STREETS_________________________
     streetsPath = ancillary_data_folder_path + "/roads/streets.geojson"

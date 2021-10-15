@@ -59,6 +59,9 @@ initImportProcess = "no"
 
 #-------- PROCESS: WATER --------
 init_waterProcess = "no"
+waterProcess00 = "no"
+waterProcess01 = "no"
+waterProcess02 = "no"
 
 #-------- PROCESS: STREETS --------
 init_streetProcess = "no" # This is required before railways and busses to create PGR topology
@@ -66,10 +69,19 @@ init_streetProcess = "no" # This is required before railways and busses to creat
 #-------- PROCESS: RAILWAYS --------
 # Creating Isochones for each year for train stations and counting the accessibility of each cell  
 init_tramProcess = "yes" 
+tramProcess00 = "no" 
+tramProcess01 = "no"
+tramProcess02 = "no"
+tramProcess03 = "no"
+tramProcess04 = "yes"
 
 #-------- PROCESS: BUSES --------
 # Creating Isochones for each year for bus stops and counting the accessibility of each cell in grid
 init_busProcess = "no"
+busProcess00 = "no"
+busProcess01 = "no" 
+busProcess02 = "no" 
+busProcess03 = "yes" 
 
 #-------- PROCESS: SHAPEFILIZE --------
 # Save processed data from cover analysis table to SHP
@@ -102,6 +114,10 @@ temp_shp_path = parent_path + "/data_prep/{0}_ProjectData/temp_shp".format(city)
 temp_tif_path = parent_path + "/data_prep/{0}_ProjectData/temp_tif".format(city)
 temp_tif_corine = parent_path + "/data_prep/{0}_ProjectData/temp_tif/corine".format(city)
 
-
 process_data(engine, pgpath, pghost, pgport, pguser, pgpassword, pgdatabase, ancillary_data_folder_path,ancillary_EUROdata_folder_path,cur,conn, city,country,nuts3_cd1, temp_shp_path, temp_tif_path, temp_tif_corine, python_scripts_folder_path, gdal_rasterize_path,
-                    initExtensionPostGIS, initExtensionPGRouting,initImports, initImportProcess, init_waterProcess, init_streetProcess, init_tramProcess,init_busProcess,init_psqltoshp ,init_shptoraster) #init_buildingsProcess, 
+                    initExtensionPostGIS, initExtensionPGRouting,initImports, initImportProcess, 
+                    init_waterProcess, waterProcess00, waterProcess01, waterProcess02, 
+                    init_streetProcess, 
+                    init_tramProcess, tramProcess00, tramProcess01, tramProcess02, tramProcess03, tramProcess04,
+                    init_busProcess, busProcess00, busProcess01, busProcess02, busProcess03,
+                    init_psqltoshp ,init_shptoraster) #init_buildingsProcess, 

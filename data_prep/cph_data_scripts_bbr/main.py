@@ -54,59 +54,52 @@ initExtensionPGRouting = "no"
 
 #-------- PROCESS: Clip Data to Extent --------
 initClipBBR = "no"
-
+initImportBBR ="no"
 #-------- PROCESS: BBR DATA --------
 # Process BBR data --------------------------------------------------------------------------------------
+
+## ## ## ## ## ----- YOU NEED TO SELECT BOTH PROCESS AND TYPE  ----- ## ## ## ## ##
+## ## ## ## ## ----- CHOOSE TYPE : "schools", "culture", "housing"  ----- ## ## ## ## ##
+BBRtype = "primaryschools"
+
 ## ## ## ## ## ----- SCHOOLS  ----- ## ## ## ## ##
 process_schools = "no"
-
 clipSchools = "no"
-importToDBSchools = "no"
-calcIsoSchools = "no"
-calcCountIsoSchools = "no"
+
+## ## ## ## ## ----- Primary SCHOOLS  ----- ## ## ## ## ##
+process_PrimSchools = "yes"
+clipPrimarySchools = "no"
+
+## ## ## ## ## ----- CULTURE ----- ## ## ## ## ##
+process_culture = "no"
+clipCulture = "no"
+
+importTo_DB = "no"
+calcIso = "no"
+calcCountIso = "yes"
+
+## ## ## ## ## ----- HOUSING PRICES  ----- ## ## ## ## ##
+process_housing = "no"
+
+clipHousing = "no" 
+importToDBHousing = "no" 
+calcHousingPrices = "no" 
 
 # Rasterize BBR data --------------------------------------------------------------------------------------
-## ## ## ## ## ----- YOU NEED TO SELECT BOTH PROCESS AND TYPE  ----- ## ## ## ## ##
-BBRpsqltoshp = "yes" 
-BBRrasterize = "yes" 
-## ## ## ## ## ----- SCHOOLS  ----- ## ## ## ## ##
-BBRtype= "schools" 
-"""#HERE
-
-
-initImportProcess = "no" 
-
-#-------- PROCESS: WATER --------
-init_waterProcess = "no"
-
-#-------- PROCESS: STREETS --------
-init_streetProcess = "no" # This is required before railways and busses to create PGR topology
-
-#-------- PROCESS: RAILWAYS --------
-# Creating Isochones for each year for train stations and counting the accessibility of each cell  
-init_trainProcess = "no" 
-
-#-------- PROCESS: BUSES --------
-# Creating Isochones for each year for bus stops and counting the accessibility of each cell in grid
-init_busProcess = "no"
-
-#-------- PROCESS: SHAPEFILIZE --------
-# Save processed data from cover analysis table to SHP
-init_psqltoshp = "no" 
-
-#-------- PROCESS: RASTERIZE --------
-# Save processed data from SHP to Raster
-init_shptoraster = "no" """
+BBRpsqltoshp = "no" 
+BBRrasterize = "no" 
 
 # Paths to storage during the data preparation (AUTOMATICALLY CREATED) -------------------------------------------------
 #path to folder for intermediate shapefiles 
 temp_shp_path = parent_path + "/data_prep/{0}_ProjectData/temp_shp".format(city)
 temp_tif_path = parent_path + "/data_prep/{0}_ProjectData/temp_tif".format(city)
 
-
 process_data(engine, pgpath, pghost, pgport, pguser, pgpassword, pgdatabase, cur, conn, city, 
                     python_scripts_folder_path, gdal_rasterize_path,
                     ancillary_data_folder_path, ancillary_EUROdata_folder_path, temp_shp_path, temp_tif_path, bbr_folder_path,
-                    initExtensionPostGIS, initExtensionPGRouting, initClipBBR,
-                    process_schools, clipSchools, importToDBSchools, calcIsoSchools, calcCountIsoSchools,
-                    BBRpsqltoshp, BBRrasterize , BBRtype )
+                    initExtensionPostGIS, initExtensionPGRouting, initClipBBR, initImportBBR,
+                    process_schools, clipSchools, importTo_DB, calcIso, calcCountIso,
+                    process_PrimSchools, clipPrimarySchools,
+                    process_culture, clipCulture,
+                    process_housing, clipHousing, importToDBHousing, calcHousingPrices,
+                    BBRpsqltoshp, BBRrasterize , BBRtype)

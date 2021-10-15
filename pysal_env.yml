@@ -1,0 +1,17 @@
+name: pysal_env
+channels:
+  - conda-forge
+  - defaults
+  - pyviz
+dependencies:
+  - python = 3.7.6
+  - notebook = 6.0
+  - numpy = 1.19.1
+  - pandas = 1.1
+  - geopandas = 0.8
+  - seaborn = 0.10
+  - bokeh = 2.0
+  #- pysal = 2.2
+  - geoviews= 1.9.1
+  - hvplot = 0.7.3
+  - python-ternary = 1.0.8

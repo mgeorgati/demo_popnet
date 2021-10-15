@@ -9,16 +9,17 @@ import time
 import copy
 import re
 from itertools import combinations
-from csv_to_raster import createFolder, csvtoshp, calc_Perc, shptoraster  
+from csv_to_raster import createFolder, csvtoshp, calc_Perc, shptoraster , shptorasterPercentages
 from normalise import normalize_Numbers, shptorasterNorm, mergeAoINorm
 #from mergeSelectionCoI import sumUpTifsByGeographicalRegion, sumUpTifsByGeogrRegionCoI, mergeCoI, mergeAoI
 from variables import country_Orig
                     
-def process_data(base_dir, ancillary_data_folder_path, ancillary_POPdata_folder_path, gdal_rasterize_path, init_csv_to_shp, init_calcPercentages, init_shp_to_tif, create_empty_tif, init_tif_to_png, merge_tifs, 
-                init_calc_Norm, init_shp_to_tif_Norm, select_Countries, merge_tifs_Norm, cph_area_path, city, python_scripts_folder_path):
+def process_data(base_dir, ancillary_data_folder_path, ancillary_POPdata_folder_path, gdal_rasterize_path, 
+                init_csv_to_shp, init_calcPercentages, calcPerc, rasterizePerc, init_shp_to_tif, create_empty_tif, init_tif_to_png, merge_tifs, 
+                init_calc_Norm, init_shp_to_tif_Norm, select_Countries, merge_tifs_Norm, city, python_scripts_folder_path):
     #Start total preparation time timer
     start_total_algorithm_timer = time.time()
-    years_list= [ 1992, 1994, 1996, 1998, 2000, 2002, 2004, 2006, 2008, 2010 ] # 2012, 2014, 2016, 2018
+    years_list= [1992, 1994, 1996, 1998, 2000, 2002, 2004, 2006, 2008, 2010, 2012, 2014, 2016] #1992, 1994, 1996, 1998, 2000, 2002, 2004, 2006, 2008, 2010, 2012, 2014, 2016, 2018
     #1992, 1994, 1996, 1998, 2000, 2002, 2004, 2006, 2008, 2010, 2012, 2014, 2016, 2018
     for year in years_list:
         temp_shp_path = ancillary_POPdata_folder_path + "/{}/temp_shp".format(year)
@@ -35,8 +36,12 @@ def process_data(base_dir, ancillary_data_folder_path, ancillary_POPdata_folder_
             #sumCountries(ancillary_POPdata_folder_path,year, dictNLD)
         
         if init_calcPercentages == "yes":
-            print("------------------------------ Calculate percentage of migrant groups per total population and migration ------------------------------")
-            calc_Perc(ancillary_POPdata_folder_path, city,year)        
+            if calcPerc == "yes":
+                print("------------------------------ Calculate percentage of migrant groups per total population and migration ------------------------------")
+                calc_Perc(ancillary_POPdata_folder_path, city,year) 
+            if rasterizePerc == "yes":
+                print("------------------------------ Rasterize percentages of migrant groups per total population and migration ------------------------------")
+                shptorasterPercentages(ancillary_POPdata_folder_path,ancillary_data_folder_path, gdal_rasterize_path, city,year)       
 
         if init_shp_to_tif == "yes":
             print("------------------------------ Rasterize the Population Data {}------------------------------".format(year))

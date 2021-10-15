@@ -1,0 +1,25 @@
+name: pytorch_env
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - python = 3.7.6
+  - notebook = 6.0
+  - numpy = 1.19.1
+  - rasterio = 1.1
+  - pandas = 1.1
+  - xlrd = 1.2.0
+  - openpyxl = 3.0.7
+  #- geopandas = 0.8
+  - matplotlib = 3.2
+  - seaborn = 0.10
+  - pytorch = 1.4.0
+  - tqdm = 4.62.2
+  - torchvision = 0.5.0
+
+# conda env create -f pytorch_env.yml
+# conda env update --prefix C:/Users/NM12LQ/Anaconda3/envs/pytorch_env --file pytorch_env.yml  --prune
+
+
+

@@ -5,7 +5,6 @@ import gdal
 import geopandas as gpd
 from shapely.geometry import Polygon
 
-
 ## ## ## ## ## ----- CREATE PostGIS EXTENSION  ----- ## ## ## ## ##
 def initPostgis(pghost, pgport, pguser, pgpassword, pgdatabase, cur, conn,city):
     conn = psycopg2.connect(database=pgdatabase, user=pguser, host=pghost, password=pgpassword,sslmode="disable",gssencmode="disable")
@@ -48,36 +47,39 @@ def clipToExtent(gdal_path, xmin, ymin, xmax, ymax, bbr_folder_path, year, city)
     print(cmd_tif_merge)
     subprocess.call(cmd_tif_merge, shell=False)
 
-## ## ## ## ## ----- CLIP BBR DATA TO bbox EXTENT  ----- ## ## ## ## ##
-def clipSelectCulture(gdal_path, city, ancillary_data_folder_path, bbr_folder_path,  year): 
-    csPath =  os.path.dirname(ancillary_data_folder_path) + "/temp_shp/{0}_bbox.shp".format(city)
-    cs = gpd.read_file(csPath).to_crs("epsg:25832")
-    xmin, ymin, xmax, ymax = cs.geometry.total_bounds
-    print(xmin, ymin, xmax, ymax)
-    out_path = bbr_folder_path + "/{}_bbr/culture".format(city)
-    createFolder( out_path)
-    cmd_tif_merge = '{0}/ogr2ogr.exe -spat {1} {2} {3} {4} -where "\"BYG_ANVEND\" = 410" -s_srs EPSG:25832 -t_srs \
-                    EPSG:3035 -f GPKG {7}/{6}_bbr_culture.gpkg \
-                    {5}/rawData/bbr_{6}.gpkg'.format(gdal_path, xmin, ymin, xmax, ymax, ancillary_data_folder_path, year, out_path)
-    print(cmd_tif_merge)
-    subprocess.call(cmd_tif_merge, shell=False)
+def importToDB_BBR(bbr_folder_path, city, conn, cur,  engine, year):
+    # Loading shapefiles into postgresql and creating necessary 
+    #_______________________Housing_________________________
+    print("Importing files to postgres")
+    path = bbr_folder_path + "/{0}_bbr/{1}_{0}_bbr.gpkg".format(city, year )
+    src_file = gpd.read_file(path)
+    
+    print(src_file .head(2))
+    # Create Table for Country Case Study
+    print("---------- Creating table for {1} {0}, if it doesn't exist ----------".format(year, city))
+    cur.execute("SELECT EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = '{0}_{1}_bbr');".format(year,  city))
+    check = cur.fetchone()
+    if check[0] == True:
+        print("{0} {1} table already exists".format(year,city))
 
-def psqltoshp(city, engine, temp_shp_path, BBRrasterizeType,year):
+    else:
+        print("Creating {0} BBR FOR CPH table".format(year))
+        src_file.to_postgis('bbr_{1}_{0}'.format(year, city),con =engine)
+
+def psqltoshp(city, engine, temp_shp_path, BBRtype, year):
     # Create SQL Query
-    sql = """SELECT id, "{0}_{1}count", geom FROM {2}_cover_analysis""".format(year, BBRrasterizeType, city)
+    sql = """SELECT id, "{0}_{1}", geom FROM {2}_cover_analysis""".format(year, BBRtype, city)
     # Read the data with Geopandas
     gdf = gpd.GeoDataFrame.from_postgis(sql, engine, geom_col='geom' )
     print(gdf.head(4))
-    src_path = temp_shp_path + "/{0}_{1}".format(city, BBRrasterizeType)
+    src_path = temp_shp_path + "/{0}_{1}".format(city, BBRtype)
     createFolder(src_path)
 
     # exporting water cover from postgres
-    print("Exporting {0} in {1} from postgres".format(BBRrasterizeType,year))
-    gdf.to_file(src_path + "/{0}_{1}.gpkg".format(year, BBRrasterizeType),  driver="GPKG")  
-    
-    
+    print("Exporting {0} in {1} from postgres".format(BBRtype,year))
+    gdf.to_file(src_path + "/{0}_{1}.gpkg".format(year, BBRtype),  driver="GPKG")   
 
-def shptoraster(city, gdal_rasterize_path, xres, yres, temp_shp_path, temp_tif_path, year, BBRrasterizeType):
+def shptoraster(city, gdal_rasterize_path, xres, yres, temp_shp_path, temp_tif_path, year, BBRtype):
     # Getting extent of ghs pop raster
     data = gdal.Open(temp_tif_path + "/{0}_CLC_2012_2018.tif".format(city))
     
@@ -89,16 +91,16 @@ def shptoraster(city, gdal_rasterize_path, xres, yres, temp_shp_path, temp_tif_p
     miny = maxy + geoTransform[5] * data.RasterYSize
     data = None
     
-    # Rasterizing schools layer
-    print("Rasterizing schools layer")
-    src_path = temp_shp_path + "/{0}_{1}".format(city, BBRrasterizeType)
-    dst_path = temp_tif_path + "/{0}_{1}".format(city, BBRrasterizeType)
+    # Rasterizing layer
+    print("Rasterizing {0} layer, {1}".format(BBRtype,year))
+    src_path = temp_shp_path + "/{0}_{1}".format(city, BBRtype)
+    dst_path = temp_tif_path + "/{0}_{1}".format(city, BBRtype)
     createFolder(dst_path)
 
-    src_file = src_path + "/{0}_{1}.gpkg".format(year, BBRrasterizeType)
-    dst_file = dst_path + "/{0}_{1}.tif".format(year, BBRrasterizeType)
-    cmd = '{0}/gdal_rasterize.exe -a {9}_{10}count -te {1} {2} {3} {4} -tr {5} {6} {7} {8}'\
-        .format(gdal_rasterize_path, minx, miny, maxx, maxy, xres, yres, src_file, dst_file, year, BBRrasterizeType)
+    src_file = src_path + "/{0}_{1}.gpkg".format(year, BBRtype)
+    dst_file = dst_path + "/{0}_{1}.tif".format(year, BBRtype)
+    cmd = '{0}/gdal_rasterize.exe -a {9}_{10} -te {1} {2} {3} {4} -tr {5} {6} {7} {8}'\
+        .format(gdal_rasterize_path, minx, miny, maxx, maxy, xres, yres, src_file, dst_file, year, BBRtype)
     subprocess.call(cmd, shell=True)
 
 

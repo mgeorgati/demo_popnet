@@ -3,7 +3,7 @@ from bunch import Bunch
 import os
 
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
+print(base_dir)
 def get_config_from_json(json_file):
     """
     Get the config from a json file
@@ -23,14 +23,14 @@ def get_config_from_json(json_file):
 def process_config(jsonfile):
     config, _ = get_config_from_json(jsonfile)
 
-    config.summary_dir = os.path.join(os.path.sep, base_dir, "experiments", config.city,config.trial_name,config.exp_name, config.sub_exp, "summary")
-    config.checkpoint_dir = os.path.join(os.path.sep, base_dir, "experiments", config.city, config.trial_name,config.exp_name, config.sub_exp, "checkpoints/")
-    config.output_dir = os.path.join(os.path.sep, base_dir, "experiments",  config.city, config.trial_name,config.exp_name, config.sub_exp, "output")
-    config.output_pred_dir = os.path.join(os.path.sep, base_dir, "experiments",  config.city, config.trial_name,config.exp_name, config.sub_exp, "outputs", "predictions")
-    config.output_dif_dir = os.path.join(os.path.sep, base_dir, "experiments",  config.city, config.trial_name, config.exp_name, config.sub_exp, "outputs", "difference")
-    config.output_eval_dir = os.path.join(os.path.sep, base_dir, "experiments",  config.city,config.trial_name,config.exp_name, config.sub_exp, "outputs", "evaluation")
-    config.output_bbox_dir = os.path.join(os.path.sep, base_dir, "experiments", config.city, config.trial_name, config.exp_name, config.sub_exp, "outputs", "bbox")
-    config.input_dir = os.path.join(os.path.sep, base_dir, "experiments",  config.city, config.trial_name,config.exp_name, config.sub_exp, "inputs")
+    config.summary_dir = os.path.join(os.path.sep, base_dir, "experiments",  config.trial_name,config.exp_name, config.sub_exp, "summary")
+    config.checkpoint_dir = os.path.join(os.path.sep, base_dir, "experiments",   config.trial_name,config.exp_name, config.sub_exp, "checkpoints/")
+    config.output_dir = os.path.join(os.path.sep, base_dir, "experiments",    config.trial_name,config.exp_name, config.sub_exp, "output")
+    config.output_pred_dir = os.path.join(os.path.sep, base_dir, "experiments",    config.trial_name,config.exp_name, config.sub_exp, "outputs", "predictions")
+    config.output_dif_dir = os.path.join(os.path.sep, base_dir, "experiments",    config.trial_name, config.exp_name, config.sub_exp, "outputs", "difference")
+    config.output_eval_dir = os.path.join(os.path.sep, base_dir, "experiments",   config.trial_name,config.exp_name, config.sub_exp, "outputs", "evaluation")
+    config.output_bbox_dir = os.path.join(os.path.sep, base_dir, "experiments",   config.trial_name, config.exp_name, config.sub_exp, "outputs", "bbox")
+    config.input_dir = os.path.join(os.path.sep, base_dir, "experiments",    config.trial_name,config.exp_name, config.sub_exp, "inputs")
 
     return config
     #print(config)

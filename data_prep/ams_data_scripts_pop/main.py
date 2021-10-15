@@ -22,7 +22,9 @@ city ='ams'
 #csv_to_shp --> dataVectorGrid, dataVectorGridSums
 init_csv_to_shp = "no"
 #Calculate Percentages --> dataVectorGridDivs
-init_calcPercentages= "no"
+init_calcPercentages = "yes"
+calcPerc = "yes" #Calculate the percentages and store vector data _Divs
+rasterizePerc = "yes" #Rasterize the percentages in 2folders for Z0 & Z1
 
 #Rasterize shapefiles: shp_to_tif
 init_shp_to_tif = "no"
@@ -34,7 +36,7 @@ init_shp_to_tif_Norm = "no"
 # Select the countries included in the trial
 select_Countries = "no"
 #Merge Normalized rasters
-merge_tifs_Norm = "yes"
+merge_tifs_Norm = "no"
 
 # Check if there are mismatches among the tif folders for socio-demographic variables
 create_empty_tif = "no"
@@ -43,8 +45,6 @@ init_tif_to_png= "no"
 # Merge tifs by Geographic region for presentation
 merge_tifs = "no"
 
-#Path for CPH area
-cph_area_path = base_dir + "/data/cph_area"
 # Paths for the Population Data --------------------------------------------------------------
 #path to ancillary data folder
 ancillary_data_folder_path = base_dir + "/data_prep/{}_Projectdata/AncillaryData".format(city)
@@ -56,5 +56,6 @@ python_scripts_folder_path = r'C:/Users/NM12LQ/Anaconda3/envs/popnet_env/Scripts
 #path to folder with gdal_rasterize.exe
 gdal_rasterize_path = r'C:/Users/NM12LQ/Anaconda3/envs/popnet_env/Library/bin' #O:/projekter/PY000014_D/popnet_env/Library/bin
 
-process_data(base_dir, ancillary_data_folder_path, ancillary_POPdata_folder_path, gdal_rasterize_path, init_csv_to_shp,init_calcPercentages, init_shp_to_tif, create_empty_tif, init_tif_to_png, merge_tifs, 
-            init_calc_Norm, init_shp_to_tif_Norm, select_Countries, merge_tifs_Norm, cph_area_path, city, python_scripts_folder_path)
+process_data(base_dir, ancillary_data_folder_path, ancillary_POPdata_folder_path, gdal_rasterize_path, 
+            init_csv_to_shp, init_calcPercentages, calcPerc, rasterizePerc, init_shp_to_tif, create_empty_tif, init_tif_to_png, merge_tifs, 
+            init_calc_Norm, init_shp_to_tif_Norm, select_Countries, merge_tifs_Norm, city, python_scripts_folder_path)
