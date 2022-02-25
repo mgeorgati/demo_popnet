@@ -45,7 +45,7 @@ ancillary_EUROdata_folder_path =  parent_path + "/data_prep/euroData"
 # path to folder containing gdal_calc.py and gdal_merge.py
 python_scripts_folder_path = r'C:/Users/NM12LQ/Anaconda3/Scripts'
 #path to folder with gdal_rasterize.exe
-gdal_rasterize_path = r'C:/Users/NM12LQ/Anaconda3/Lib/site-packages/osgeo'
+gdal_rasterize_path = r'C:/Users/NM12LQ/Anaconda3/envs/pop_env/Library/bin'
 
 #-------- PROCESS: Create Extensions --------`
 initExtensionPostGIS = "no"
@@ -66,8 +66,9 @@ init_streetProcess = "no" # This is required before railways and busses to creat
 # Creating Isochones for each year for bus stops and counting the accessibility of each cell in grid
 init_busProcess = "yes"
 busProcess00 = "no"
-busProcess01 = "yes" 
-busProcess02 = "no" 
+busProcess01 = "no" 
+busProcess02 = "no"
+busProcess03 = "yes"
 
 #-------- PROCESS: RAILWAYS --------
 # Creating Isochones for each year for train stations and counting the accessibility of each cell  
@@ -75,15 +76,8 @@ init_trainProcess = "no"
 trainProcess00 = "no" 
 trainProcess01 = "no"
 trainProcess02 = "no"
+trainProcess03 = "yes"
 """
-#-------- PROCESS: RAILWAYS --------
-# Creating Isochones for each year for train stations and counting the accessibility of each cell  
-init_trainProcess = "no" 
-trainProcess00 = "no" 
-trainProcess01 = "no"
-trainProcess02 = "no"
-trainProcess03 = "no"
-trainProcess04 = "no"
 
 #-------- PROCESS: SHAPEFILIZE --------
 # Save processed data from cover analysis table to SHP
@@ -92,23 +86,6 @@ init_psqltoshp = "no"
 #-------- PROCESS: RASTERIZE --------
 # Save processed data from SHP to Raster
 init_shptoraster = "no" 
-
-# choose processes to run ----------------------------------------------------------------------------------------------
-# Initial preparation of Population data ("yes" / "no") csvTOdbTOshpTOtif
-init_prep = "no"
-#Import data to postgres? ("yes" / "no")
-init_import_to_postgres = "no"
-# Run postgres queries? ("yes" / "no")
-restructure_tables_sql = "no"
-# export data from postgres? ("yes" / "no")
-init_export_data = "no"
-# rasterize data from postgres? ("yes" / "no")
-init_rasterize_data = "no"
-# Merge data from postgres? ("yes" / "no")
-#init_merge_data = "no"
-
-# Merge data by sub_region_name and by year ("yes" / "no")
-merge_data_subregion = "no"
 """
 
 # Paths to storage during the data preparation (AUTOMATICALLY CREATED) -------------------------------------------------
@@ -121,7 +98,7 @@ process_data(engine, pgpath, pghost, pgport, pguser, pgpassword, pgdatabase, anc
                     initExtensionPostGIS, initExtensionPGRouting, initImportProcess, 
                     init_waterProcess, waterProcess00, waterProcess01, 
                     init_streetProcess, 
-                    init_trainProcess, trainProcess00, trainProcess01, trainProcess02, #trainProcess03, trainProcess04,
-                    init_busProcess, busProcess00, busProcess01, busProcess02, #busProcess03,
+                    init_trainProcess, trainProcess00, trainProcess01, trainProcess02, trainProcess03, #trainProcess04,
+                    init_busProcess, busProcess00, busProcess01, busProcess02, busProcess03,
                     #init_psqltoshp ,init_shptoraster
                     ) #init_buildingsProcess, 

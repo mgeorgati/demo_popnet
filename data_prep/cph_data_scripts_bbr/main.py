@@ -45,7 +45,7 @@ ancillary_EUROdata_folder_path =  parent_path + "/data_prep/euroData"
 # path to folder containing gdal_calc.py and gdal_merge.py
 python_scripts_folder_path = r'C:/Users/NM12LQ/Anaconda3/Scripts'
 #path to folder with gdal_rasterize.exe
-gdal_rasterize_path = r'C:/Users/NM12LQ/Anaconda3/Lib/site-packages/osgeo'
+gdal_rasterize_path = r'C:/Users/NM12LQ/Anaconda3/envs/pop_env/Library/bin'
 
 
 #-------- PROCESS: Create Extensions --------`
@@ -59,15 +59,15 @@ initImportBBR ="no"
 # Process BBR data --------------------------------------------------------------------------------------
 
 ## ## ## ## ## ----- YOU NEED TO SELECT BOTH PROCESS AND TYPE  ----- ## ## ## ## ##
-## ## ## ## ## ----- CHOOSE TYPE : "schools", "culture", "housing"  ----- ## ## ## ## ##
-BBRtype = "primaryschools"
+## ## ## ## ## ----- CHOOSE TYPE : "schools", "culture", "housing", "primaryschools", "constryear", "floors" ----- ## ## ## ## ##
+BBRtype = "constryear"
 
 ## ## ## ## ## ----- SCHOOLS  ----- ## ## ## ## ##
 process_schools = "no"
 clipSchools = "no"
 
 ## ## ## ## ## ----- Primary SCHOOLS  ----- ## ## ## ## ##
-process_PrimSchools = "yes"
+process_PrimSchools = "NO"
 clipPrimarySchools = "no"
 
 ## ## ## ## ## ----- CULTURE ----- ## ## ## ## ##
@@ -76,7 +76,7 @@ clipCulture = "no"
 
 importTo_DB = "no"
 calcIso = "no"
-calcCountIso = "yes"
+calcCountIso = "NO"
 
 ## ## ## ## ## ----- HOUSING PRICES  ----- ## ## ## ## ##
 process_housing = "no"
@@ -85,9 +85,15 @@ clipHousing = "no"
 importToDBHousing = "no" 
 calcHousingPrices = "no" 
 
+## ## ## ## ## ----- Construction Year  ----- ## ## ## ## ##
+process_constrYear = "no"
+
+## ## ## ## ## ----- NUMBER OF FLOORS  ----- ## ## ## ## ##
+process_floors = "no"
+
 # Rasterize BBR data --------------------------------------------------------------------------------------
-BBRpsqltoshp = "no" 
-BBRrasterize = "no" 
+BBRpsqltoshp = "yes" 
+BBRrasterize = "yes" 
 
 # Paths to storage during the data preparation (AUTOMATICALLY CREATED) -------------------------------------------------
 #path to folder for intermediate shapefiles 
@@ -102,4 +108,5 @@ process_data(engine, pgpath, pghost, pgport, pguser, pgpassword, pgdatabase, cur
                     process_PrimSchools, clipPrimarySchools,
                     process_culture, clipCulture,
                     process_housing, clipHousing, importToDBHousing, calcHousingPrices,
+                    process_constrYear, process_floors,
                     BBRpsqltoshp, BBRrasterize , BBRtype)

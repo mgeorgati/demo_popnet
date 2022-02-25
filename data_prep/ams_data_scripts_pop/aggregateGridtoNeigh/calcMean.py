@@ -2,6 +2,7 @@ import os
 import geopandas as gpd
 import json
 from rasterstats import zonal_stats
+
 # Calculate zonal statistics from tiffs
 def createSognMean(year, src_file, dstPath, dstFile, districtsPath, name):
     # Read Files
@@ -20,16 +21,6 @@ def createSognMean(year, src_file, dstPath, dstFile, districtsPath, name):
     dst_file = dstPath + "{0}".format(dstFile) #
     with open(dst_file , 'w') as outfile:
         json.dump(result, outfile)
-"""
-# Zonal Statistics of percentages of migrant groups 
-# Calculate the mean values of the percentage of each migrant group to 
-def generateSognMean(srcPath,year, dstPath, districtsPath):
-    for file in os.listdir(srcPath):
-        if file.startswith("{}_Z0_".format(year)) and file.endswith(".tif"):
-            name = file.split("{}_Z0_".format(year))[1].split(".tif")[0]
-            srcFile = srcPath + file
-            dstFile = "{0}_NeighPerc_{1}.geojson".format(year,name)
-            createSognMean(year, srcFile, dstPath, dstFile, districtsPath, name)"""
 
 # Combine all files from folder to new geojson file
 def combineFiles(srcFile, dstPath,year,comb):

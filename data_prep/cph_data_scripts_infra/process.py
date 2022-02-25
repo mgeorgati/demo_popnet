@@ -1,24 +1,26 @@
 # Imports
 import subprocess
-import os
-import gdal
-import ogr
-import osr
-import psycopg2
+import os,sys
+from osgeo import gdal
+
 import time
-from importDataDB import initPostgis,initPgRouting,initialimports, initialProcess# extract_featuresGDB, rename_Tablefeatures, initialimports, initialProcess, importWater, importTrainStations,importBusStops, import_buildings
+from importDataDB import initPostgis,initPgRouting,initialimports, initialProcess # extract_featuresGDB, rename_Tablefeatures, initialimports, initialProcess, importWater, importTrainStations,importBusStops, import_buildings
+from calc_Industry import calculateIndustry
+from calc_GreenSpaces import calculateGreen
 from calc_Water import calculateWater
 from calc_Streets import importStreets, createNetwork
 from calc_Rails import computeTrainIsochrones,calculateTrainCount
 from calc_Buses import computeBusIsochrones, calculateBusCount
 
-from calc_Schools import importToDBSchools, computeSchoolsIsochrones, calculateSchoolCount
-
-
+#from calc_Schools import importToDBSchools, computeSchoolsIsochrones, calculateSchoolCount
+sys.path.append("C:/FUME/DasymetricMapping/scripts/mainFunctions")
+from format_conversions import dbTOraster
 from DBtoRaster import psqltoshp, shptoraster
 
 def process_data( engine, pgpath, pghost, pgport, pguser, pgpassword, pgdatabase, ancillary_data_folder_path,ancillary_EUROdata_folder_path,cur,conn, city,country,nuts3_cd1, nuts3_cd2, temp_shp_path, temp_tif_path,temp_tif_corine, python_scripts_folder_path,gdal_rasterize_path,
                     initExtensionPostGIS, initExtensionPGRouting,initImports, initImportProcess,init_shptoraster,
+                    init_industryProcess, industryProcess00, industryProcess01,
+                    init_greenProcess, greenProcess00, greenProcess01,
                     initBBRProcess_schools):
                     #init_waterProcess, init_streetProcess, init_trainProcess,init_busProcess,init_buildingsProcess,init_psqltoshp ,
     #Start total preparation time timer
@@ -57,10 +59,62 @@ def process_data( engine, pgpath, pghost, pgport, pguser, pgpassword, pgdatabase
         print("------------------------------ IMPORT AND CREATE BASIC TABLES: BBR SCHOOLS ------------------------------")
         years_list = [2014,2016,2018, 2020] #2002,2004,2006,2008,2010,2012,2014,2016,2018, 2020
         for year in years_list:
-            importToDBSchools(ancillary_data_folder_path, city, cur, engine, year)
-            computeSchoolsIsochrones(ancillary_data_folder_path, city, cur, conn, year)
-            calculateSchoolCount(ancillary_data_folder_path, city, conn, cur, year)
+            print("")
+            #importToDBSchools(ancillary_data_folder_path, city, cur, engine, year)
+            #computeSchoolsIsochrones(ancillary_data_folder_path, city, cur, conn, year)
+            #calculateSchoolCount(ancillary_data_folder_path, city, conn, cur, year)
 
+    raster_file =  "C:/FUME/project/AncillaryData/cph/corine/agric_cph_CLC_2012_2018.tif".format(city) 
+    destPath ="C:/FUME/project/AncillaryData/cph/corine"
+    # Processing INDUSTRY data to postgres--------------------------------------------------------------------------------------
+    if init_industryProcess == "yes":
+        if industryProcess00 == "yes":
+            print("------------------------------ IMPORT AND CREATE TABLE FOR INDUSTRY ------------------------------")
+            print("------------------------------ PROCESS INDUSTRY OSM ------------------------------")
+            print("------------------------------ CALCULATE INDUSTRY COVERGAE PERCENTAGE ------------------------------")
+            calculateIndustry(ancillary_data_folder_path, temp_shp_path, engine, city, conn, cur)
+        if industryProcess01 == "yes":
+            print("------------------------------ DB TO SHP AND RASTERIZE AND COMBINE TO CORINE WATER ------------------------------")
+            column_name = "industry_cover".format(city)
+            layerName = "{}_industry_cover".format(city)
+            raster_file =  "C:/FUME/project/AncillaryData/cph/corine/agric_cph_CLC_2012_2018.tif".format(city) 
+            destPath ="C:/FUME/project/AncillaryData/cph/corine"
+            dbTOraster(city, gdal_rasterize_path, engine, raster_file, temp_shp_path, temp_tif_path, column_name, layerName)
+            for file in os.listdir( "C:/FUME/project/AncillaryData/cph/corine/"):
+                if file.endswith('.tif') and file.startswith('industry_{}_CLC_'.format(city)):
+                    name = file.split("_", 1)[1]
+                    print(name)
+                    #As the industry bodies of the Corine do not include details of Amsterdam, it gets combined with other layer --> percentages of industry cover 
+                    dst_file = temp_tif_path +  "/{0}_industry_cover.tif".format(city)
+                    print("------------------------------ Splitting Corine rasters to categories:industry Bodies and Wetlands Combines with industry cover (percentages) produced in Postgres with (vectors) lakes, wetlands and sea  ------------------------------")
+                    cmds = """python {2}/gdal_calc.py -A "{0}/industry_{1}" -B "{3}"  \
+                        --A_band=1 --B_band=1 --outfile="{0}/indComb_{1}" \
+                        --calc="maximum(A*100, B)/100" """.format(destPath, name, python_scripts_folder_path, dst_file)
+                    subprocess.call(cmds, shell=True)   
+    
+    # Processing GREEN data to postgres--------------------------------------------------------------------------------------
+    if init_greenProcess == "yes":
+        if greenProcess00 == "yes":
+            print("------------------------------ IMPORT AND CREATE TABLE FOR INDUSTRY ------------------------------")
+            print("------------------------------ PROCESS INDUSTRY OSM ------------------------------")
+            print("------------------------------ CALCULATE INDUSTRY COVERGAE PERCENTAGE ------------------------------")
+            calculateGreen(ancillary_data_folder_path, temp_shp_path, engine, city, conn, cur)
+        if greenProcess01 == "yes":
+            print("------------------------------ DB TO SHP AND RASTERIZE AND COMBINE TO CORINE WATER ------------------------------")
+            column_name = "green_cover".format(city)
+            layerName = "{}_green_cover".format(city)
+            dbTOraster(city, gdal_rasterize_path, engine, raster_file, temp_shp_path, temp_tif_path, column_name, layerName)
+            for file in os.listdir("C:/FUME/project/AncillaryData/cph/corine/"):
+                if file.endswith('.tif') and file.startswith('greenSpaces_{}_CLC_'.format(city)):
+                    name = file.split("_", 1)[1]
+                    print(name)
+                    #As the industry bodies of the Corine do not include details of Amsterdam, it gets combined with other layer --> percentages of industry cover 
+                    dst_file = temp_tif_path + "/{0}_green_cover.tif".format(city)
+                    print("------------------------------ Splitting Corine rasters to categories:  ------------------------------")
+                    cmds = """python {2}/gdal_calc.py -A "{0}/greenSpaces_{1}" -B "{3}"  \
+                        --A_band=1 --B_band=1 --outfile="{0}/greenSpacesComb_{1}" \
+                        --calc="maximum(A*100, B)/100" """.format(destPath, name, python_scripts_folder_path, dst_file)
+                    subprocess.call(cmds, shell=True)  
 
 
     """if initImportProcess == "yes":    

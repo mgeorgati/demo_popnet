@@ -8,6 +8,12 @@ data_prep/cph_data_scripts_pop/PySAL
 data_prep/cph_ProjectData/
 data_prep/crc_ProjectData/
 data_prep/rom_ProjectData/
+data_prep/Deliverable_6.3/DK/
+data_prep/Deliverable_6.3/IT/
+data_prep/Deliverable_6.3/NL/
+data_prep/Deliverable_6.3/PL/
+data_prep/Deliverable_6.3/D6.3 Structured Dataset.docx
+data_prep/Deliverable_6.3/D6.3 Summary Table.xlsx
 data_prep/euroData/
 model/cph_model/data
 model/cph_model/experiments/

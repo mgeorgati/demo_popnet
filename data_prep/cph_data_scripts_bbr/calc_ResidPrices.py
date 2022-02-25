@@ -1,6 +1,5 @@
 import os
 import subprocess
-import pathlib
 import time
 import geopandas as gpd
 from basicFunctions import createFolder

@@ -6,4 +6,4 @@ dependencies:
   - python = 3.7.6
   - qgis=3.18
   
-  #conda env create -f C:/Users/NM12LQ/OneDrive - Aalborg Universitet/PopNetV2/qgis_env.yml
+  #conda env create -f C:/FUME/PopNetV2/qgis_env.yml

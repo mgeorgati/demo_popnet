@@ -37,7 +37,7 @@ cur = conn.cursor()
 # Get path to main script
 python_script_dir = os.path.dirname(os.path.abspath(__file__))
 print(python_script_dir)
-parent_path = os.path.dirname(os.path.dirname(python_script_dir))
+parent_path = "C:/Users/NM12LQ/OneDrive - Aalborg Universitet/PopNetV2_backup" #os.path.dirname(os.path.dirname(python_script_dir))
 
 # Paths for the data / folders in the Project_data folder --------------------------------------------------------------
 #path to ancillary data folder
@@ -47,9 +47,10 @@ ancillary_EUROdata_folder_path =  parent_path + "/data_prep/euroData"
 
 # Other Paths to necessary python scripts and functions ----------------------------------------------------------------
 # path to folder containing gdal_calc.py and gdal_merge.py
-python_scripts_folder_path = r'C:/Users/NM12LQ/Anaconda3/Scripts'
+python_scripts_folder_path = r'C:/Users/NM12LQ/Anaconda3/envs/pop_env/Scripts'
 #path to folder with gdal_rasterize.exe
-gdal_rasterize_path = r'C:/Users/NM12LQ/Anaconda3/Lib/site-packages/osgeo'
+gdal_rasterize_path = r'C:/Users/NM12LQ/Anaconda3/envs/pop_env/Library/bin' #O:/projekter/PY000014_D/popnet_env/Library/bin
+gdal_path = r'C:/Users/NM12LQ/Anaconda3/envs/pop_env/Lib/site-packages/osgeo'
 
 #-------- PROCESS: Create Extensions --------`
 initExtensionPostGIS = "no"
@@ -72,6 +73,16 @@ init_trainProcess = "no"
 #-------- PROCESS: BUSES --------
 # Creating Isochones for each year for bus stops and counting the accessibility of each cell in grid
 init_busProcess = "no"
+
+#-------- PROCESS: Industry --------
+init_industryProcess = "yes"
+industryProcess00 = "no"
+industryProcess01 = "yes"
+
+#-------- PROCESS: Green --------
+init_greenProcess = "no"
+greenProcess00 = "no"
+greenProcess01 = "yes"
 
 #-------- PROCESS: SHAPEFILIZE --------
 # Save processed data from cover analysis table to SHP
@@ -113,4 +124,6 @@ temp_tif_corine = parent_path + "/data_prep/{0}_ProjectData/temp_tif/corine".for
 
 process_data(engine, pgpath, pghost, pgport, pguser, pgpassword, pgdatabase, ancillary_data_folder_path,ancillary_EUROdata_folder_path, cur, conn, city,country,nuts3_cd1, nuts3_cd2, temp_shp_path, temp_tif_path, temp_tif_corine,python_scripts_folder_path, gdal_rasterize_path,
     initExtensionPostGIS, initExtensionPGRouting, initImports, initImportProcess, init_shptoraster,
+    init_industryProcess, industryProcess00, industryProcess01,
+    init_greenProcess, greenProcess00, greenProcess01,
     initBBRProcess_schools) #init_waterProcess, init_streetProcess, init_trainProcess, init_busProcess, init_buildingsProcess, init_psqltoshp ,

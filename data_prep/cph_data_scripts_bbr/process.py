@@ -1,16 +1,12 @@
 # Imports
-import subprocess
-import os
-import gdal
-import ogr
-import osr
-import psycopg2
 import time
 
 from basicFunctions import initPostgis,initPgRouting, clipToExtent, importToDB_BBR, createFolder, psqltoshp, shptoraster
 from calc_Schools import clipSelectScools, clipSelectCulture, importToDB, computeIsochrones, calculateIsochronesCount
 from calc_PrimarySchools import calcPrimarySchools
 from calc_ResidPrices import clipSelectHousing, importToDBHousing, calculateMeanPriceHousing
+from calc_ConstrYear import calculateMeanConstructionYear, calculateMeanFloors
+
 #from DBtoRaster import psqltoshp, shptoraster
 
 def process_data(engine, pgpath, pghost, pgport, pguser, pgpassword, pgdatabase, cur, conn, city, 
@@ -21,6 +17,7 @@ def process_data(engine, pgpath, pghost, pgport, pguser, pgpassword, pgdatabase,
                     process_PrimSchools, clipPrimarySchools,
                     process_culture, clipCulture, 
                     process_housing, clipHousing, importToDBHousing, calcHousingPrices,
+                    process_constrYear, process_floors, 
                     BBRpsqltoshp, BBRrasterize , BBRtype):
                     
     #Start total preparation time timer
@@ -40,7 +37,7 @@ def process_data(engine, pgpath, pghost, pgport, pguser, pgpassword, pgdatabase,
     
     # Process BBR data --------------------------------------------------------------------------------------
     ## ## ## ## ## ----- GET IN A LOOP  ----- ## ## ## ## ##
-    years_list = [2002,2004,2006,2008,2010,2012,2014,2016,2018 ] #2002,2004,2006,2008,2010,2012,2014,2016,2018,2020
+    years_list = [2002,2004,2006,2008,2010,2012,2014,2016,2018,2020] #2002,2004,2006,2008,2010,2012,2014,2016,2018,2020
     #2002, 2004, 2006, 2008, 2010, 2012, 2014, 2016,
     #2003,2005,2007,2009,2011,2013,2015,2017,2019
     for year in years_list:
@@ -96,7 +93,17 @@ def process_data(engine, pgpath, pghost, pgport, pguser, pgpassword, pgdatabase,
                 importToDBHousing(bbr_folder_path, city, conn, cur, engine, year, BBRtype)
             if calcHousingPrices == "yes":
                 calculateMeanPriceHousing(ancillary_data_folder_path, city, conn, cur, year, BBRtype)
-
+        
+        ## ## ## ## ## ----- PROCESS CONSTRUCTION YEAR  ----- ## ## ## ## ##
+        if process_constrYear == "yes" and BBRtype == "constryear":
+            print("------------------------------ BBR CONSTRUCTION YEAR ------------------------------")
+            calculateMeanConstructionYear( city, conn, cur, year, BBRtype)
+        
+        ## ## ## ## ## ----- PROCESS NUMBER OF FLOORS  ----- ## ## ## ## ##
+        if process_floors == "yes" and BBRtype == "floors":  
+            print("------------------------------ BBR NUMBER OF FLOORS ------------------------------")
+            calculateMeanFloors( city, conn, cur, year, BBRtype)
+        
         # ## ## ## ## ----- EXPORT GPKG  ----- ## ## ## ## ##       
         if BBRpsqltoshp == "yes": 
             print("------------------------------ EXPORTING GPKG FROM DB {0},{1} ------------------------------".format(BBRtype,year))

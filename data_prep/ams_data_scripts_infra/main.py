@@ -47,7 +47,7 @@ ancillary_EUROdata_folder_path =  parent_path + "/data_prep/euroData"
 # path to folder containing gdal_calc.py and gdal_merge.py
 python_scripts_folder_path = r'C:/Users/NM12LQ/Anaconda3/Scripts'
 #path to folder with gdal_rasterize.exe
-gdal_rasterize_path = r'C:/Users/NM12LQ/Anaconda3/Lib/site-packages/osgeo'
+gdal_rasterize_path = r'C:/Users/NM12LQ/Anaconda3/envs/pop_env/Library/bin'
 
 #-------- PROCESS: Create Extensions --------`
 initExtensionPostGIS = "no"
@@ -63,12 +63,17 @@ waterProcess00 = "no"
 waterProcess01 = "no"
 waterProcess02 = "no"
 
+#-------- PROCESS: Industry --------
+init_industryProcess = "no"
+industryProcess00 = "no"
+industryProcess01 = "no"
+
 #-------- PROCESS: STREETS --------
 init_streetProcess = "no" # This is required before railways and busses to create PGR topology
 
 #-------- PROCESS: RAILWAYS --------
 # Creating Isochones for each year for train stations and counting the accessibility of each cell  
-init_tramProcess = "yes" 
+init_tramProcess = "no" 
 tramProcess00 = "no" 
 tramProcess01 = "no"
 tramProcess02 = "no"
@@ -83,30 +88,6 @@ busProcess01 = "no"
 busProcess02 = "no" 
 busProcess03 = "yes" 
 
-#-------- PROCESS: SHAPEFILIZE --------
-# Save processed data from cover analysis table to SHP
-init_psqltoshp = "no" 
-
-#-------- PROCESS: RASTERIZE --------
-# Save processed data from SHP to Raster
-init_shptoraster = "no" 
-
-# choose processes to run ----------------------------------------------------------------------------------------------
-# Initial preparation of Population data ("yes" / "no") csvTOdbTOshpTOtif
-init_prep = "no"
-#Import data to postgres? ("yes" / "no")
-init_import_to_postgres = "no"
-# Run postgres queries? ("yes" / "no")
-restructure_tables_sql = "no"
-# export data from postgres? ("yes" / "no")
-init_export_data = "no"
-# rasterize data from postgres? ("yes" / "no")
-init_rasterize_data = "no"
-# Merge data from postgres? ("yes" / "no")
-#init_merge_data = "no"
-
-# Merge data by sub_region_name and by year ("yes" / "no")
-merge_data_subregion = "no"
 
 # Paths to storage during the data preparation (AUTOMATICALLY CREATED) -------------------------------------------------
 #path to folder for intermediate shapefiles 
@@ -117,7 +98,8 @@ temp_tif_corine = parent_path + "/data_prep/{0}_ProjectData/temp_tif/corine".for
 process_data(engine, pgpath, pghost, pgport, pguser, pgpassword, pgdatabase, ancillary_data_folder_path,ancillary_EUROdata_folder_path,cur,conn, city,country,nuts3_cd1, temp_shp_path, temp_tif_path, temp_tif_corine, python_scripts_folder_path, gdal_rasterize_path,
                     initExtensionPostGIS, initExtensionPGRouting,initImports, initImportProcess, 
                     init_waterProcess, waterProcess00, waterProcess01, waterProcess02, 
+                    #init_industryProcess, industryProcess00, industryProcess01,  
                     init_streetProcess, 
                     init_tramProcess, tramProcess00, tramProcess01, tramProcess02, tramProcess03, tramProcess04,
                     init_busProcess, busProcess00, busProcess01, busProcess02, busProcess03,
-                    init_psqltoshp ,init_shptoraster) #init_buildingsProcess, 
+                    ) #init_buildingsProcess, 

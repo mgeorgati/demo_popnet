@@ -1,7 +1,7 @@
 import os
 import subprocess
 import psycopg2
-import gdal
+from osgeo import gdal
 import geopandas as gpd
 from rast_to_vec_grid import rasttovecgrid
 
@@ -67,50 +67,26 @@ def initialimports(engine,conn, cur, ancillary_data_folder_path,ancillary_EUROda
     
     nuts_city.to_file(temp_shp_path + "/{}_cs.shp".format(city), driver="ESRI Shapefile")
     
-        
-"""# Setting environment for psql
-    os.environ['PATH'] = pgpath
-    os.environ['PGHOST'] = pghost
-    os.environ['PGPORT'] = pgport
-    os.environ['PGUSER'] = pguser
-    os.environ['PGPASSWORD'] = pgpassword
-    os.environ['PGDATABASE'] = pgdatabase
+    # Create Table for bbox
+    print("---------- Creating table for Bbox, if it doesn't exist ----------")
+    print("Checking {0} bounding box table".format(city))
+    cur.execute("SELECT EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = '{0}_bbox');".format(city))
+    check = cur.fetchone()
+    if check[0] == False:
+        print("Creating {0} bounding box table from grid".format(city))
+        # bbox from NUTS3 (+buffer = 100m):
+        cur.execute("create table {0}_bbox as \
+                    SELECT ST_Buffer(ST_SetSRID(ST_Extent(geometry),3035) \
+                    ,100,'endcap=square join=mitre') as geom FROM {0}_cs;".format(city))
+        conn.commit()
+    else:
+        print("{0} bounding box table already exists".format(city))
 
-    # Loading shapefiles into postgresql
-    #_______________________NUTS3 AREAS_________________________
-    print("Importing 2021 Nuts3 to postgres")
-    NutsPath = ancillary_EUROdata_folder_path + "/ref-nuts-2021-01m/NUTS_RG_01M_2021_3035_LEVL_3/NUTS_RG_01M_2021_3035_LEVL_3.shp"
-    cmds = "shp2pgsql -I -s 3035  {0} public.nuts | psql -d postgres -U postgres".format(NutsPath)
-    print(cmds)
-    subprocess.call(cmds, shell=True)
-
-    #_______________________WETLANDS_________________________
-    print("Importing Waterbodies to postgres")
-    waterPath = ancillary_data_folder_path + "/1084_SHAPE_UTM32-EUREF89/FOT/NATUR/VAADOMRAADE.shp"
-    cmds = 'shp2pgsql -I -s 25832  {0} public.wetlands | psql'.format(waterPath, country)
-    print(cmds)
-    subprocess.call(cmds, shell=True)
-
-    #_______________________RAILWAYS_________________________
-    print("Importing Railways to postgres")
-    railPath = ancillary_data_folder_path + "/railways/trainstations.shp"
-    cmds = 'shp2pgsql -I -s 25832  {0} public.trainst | psql'.format(railPath)
-    print(cmds)
-    subprocess.call(cmds, shell=True)
-
-    #_______________________STREETS_________________________
-    print("Importing streets/ vejmidte_brugt to postgres")
-    NutsPath = ancillary_data_folder_path + "/1084_SHAPE_UTM32-EUREF89/FOT/TRAFIK/VEJMIDTE_BRUDT.shp"
-    cmds = 'shp2pgsql -I -s 25832 -W "UTF8" {0} public.streets | psql'.format(NutsPath)
-    print(cmds)
-    subprocess.call(cmds, shell=True)
-
-    #_______________________Buildings_________________________
-    print("Importing Buildings to postgres")
-    buildingsPath = ancillary_data_folder_path + "/1084_SHAPE_UTM32-EUREF89/FOT/BYGNINGER/BYGNING.shp"
-    cmds = 'shp2pgsql -I -s 25832  {0} public.buildings | psql'.format(buildingsPath)
-    print(cmds)
-    subprocess.call(cmds, shell=True)"""
+    #Exporting BBox from postgres
+    print("---------- Exporting BBox from postgres ----------")
+    sql = "SELECT * FROM {}_bbox".format(city)
+    bbox = gpd.read_postgis(sql, engine)
+    bbox.to_file(temp_shp_path + "/{}_bbox.geojson".format(city), driver="GeoJSON", crs='epsg:3035')
 
 def initialProcess(engine, ancillary_data_folder_path,ancillary_EUROdata_folder_path,pgpath, pghost, pgport, pguser, pgpassword,pgdatabase,conn, cur, nuts3_cd1, city,country, temp_shp_path, temp_tif_path, temp_tif_corine, python_scripts_folder_path):
    
@@ -121,36 +97,54 @@ def initialProcess(engine, ancillary_data_folder_path,ancillary_EUROdata_folder_
             filePath = corinePath + "/" + file
 
             print("------------------------------ Clipping Corine rasters by extent of case study area ------------------------------")
-            csPath =  temp_shp_path + "/{0}_cs.shp".format(city)
+            csPath =  temp_shp_path + "/{0}_bbox.geojson".format(city)
             print(csPath)
             cmds = 'gdalwarp -of GTiff -cutline "{0}" -crop_to_cutline -dstalpha "{2}/{5}" "{3}/{4}_{5}"'.format(csPath,filePath,corinePath, temp_tif_path,city, file)
             subprocess.call(cmds, shell=True)
     
     # ----- Splitting corine to categories ------------------------
     for file in os.listdir(temp_tif_path):
-        if file.endswith('.tif'):
+        if file.endswith('.tif') and file.startswith('{}_CLC_'.format(city)):
             print(file)
             filePath = temp_tif_path + "/" + file
 
-            print("------------------------------ Splitting Corine rasters to categories:artfc ------------------------------")
-            cmds = 'python {3}/gdal_calc.py -A "{0}" --A_band=1 --outfile="{1}/corine/artfc_{2}" --calc="logical_and(A<=11,A>0)"'.format(filePath,temp_tif_path, file, python_scripts_folder_path)
+            print("------------------------------ Splitting Corine rasters to categories: Urban Fabric (1.1) ------------------------------")
+            cmds = 'python {3}/gdal_calc.py -A "{0}" --A_band=1 --outfile="{1}/corine/urbfabr_{2}" --calc="logical_and(A<=2,A>0)"'.format(filePath,temp_tif_path, file, python_scripts_folder_path)
             subprocess.call(cmds, shell=True)
 
-            print("------------------------------ Splitting Corine rasters to categories:agric ------------------------------")
+            print("------------------------------ Splitting Corine rasters to categories: Industrial and commercial units and Other sites (1.2.1, 1.3) ------------------------------")
+            cmds = 'python {3}/gdal_calc.py -A "{0}" --A_band=1 --outfile="{1}/corine/industry_{2}" --calc="(A==3)*1 + logical_and(A>=7,A<=9)*1"'.format(filePath,temp_tif_path, file, python_scripts_folder_path)
+            subprocess.call(cmds, shell=True)
+
+            print("------------------------------ Splitting Corine rasters to categories: Transport (1.2.2-1.2.4) ------------------------------")
+            cmds = 'python {3}/gdal_calc.py -A "{0}" --A_band=1 --outfile="{1}/corine/transp_{2}" --calc="logical_and(A<=6,A>=4)"'.format(filePath,temp_tif_path, file, python_scripts_folder_path)
+            subprocess.call(cmds, shell=True)
+
+            print("------------------------------ Splitting Corine rasters to categories: Agriculture ------------------------------")
             cmds = 'python {3}/gdal_calc.py -A "{0}" --A_band=1 --outfile="{1}/corine/agric_{2}" --calc="logical_and(A<=22,A>=12)"'.format(filePath,temp_tif_path, file, python_scripts_folder_path)
             subprocess.call(cmds, shell=True)
 
-            print("------------------------------ Splitting Corine rasters to categories ------------------------------")
-            cmds = 'python {3}/gdal_calc.py -A "{0}" --A_band=1 --outfile="{1}/corine/fonat_{2}" --calc="logical_and(A<=34,A>=23)"'.format(filePath,temp_tif_path, file, python_scripts_folder_path)
+            #print("------------------------------ Splitting Corine rasters to categories: Forests ------------------------------")
+            #cmds = 'python {3}/gdal_calc.py -A "{0}" --A_band=1 --outfile="{1}/corine/fonat_{2}" --calc="logical_and(A<=34,A>=23)"'.format(filePath,temp_tif_path, file, python_scripts_folder_path)
+            #subprocess.call(cmds, shell=True)
+
+            print("------------------------------ Splitting Corine rasters to categories: Forests and Urban Grean Spaces and Leisure ------------------------------")
+            cmds = 'python {3}/gdal_calc.py -A "{0}" --A_band=1 --outfile="{1}/corine/greenSpaces_{2}" --calc="logical_and(A>=10,A<=11)*1 + logical_and(A<=34,A>=23)*1"'.format(filePath,temp_tif_path, file, python_scripts_folder_path)
             subprocess.call(cmds, shell=True)
 
-            print("------------------------------ Splitting Corine rasters to categories:wetln ------------------------------")
-            cmds = 'python {3}/gdal_calc.py -A "{0}" --A_band=1 --outfile="{1}/corine/wetln_{2}" --calc="logical_and(A<=39,A>=35)"'.format(filePath,temp_tif_path, file, python_scripts_folder_path)
+            #print("------------------------------ Splitting Corine rasters to categories:wetlands ------------------------------")
+            #cmds = 'python {3}/gdal_calc.py -A "{0}" --A_band=1 --outfile="{1}/corine/wetln_{2}" --calc="logical_and(A<=39,A>=35)"'.format(filePath,temp_tif_path, file, python_scripts_folder_path)
+            #subprocess.call(cmds, shell=True)
+
+            print("------------------------------ Splitting Corine rasters to categories: Water Bodies and Wetlands------------------------------")
+            cmds = 'python {3}/gdal_calc.py -A "{0}" --A_band=1 --outfile="{1}/corine/water_{2}" --calc="logical_and(A<=44,A>=35)"'.format(filePath,temp_tif_path, file, python_scripts_folder_path)
             subprocess.call(cmds, shell=True)
 
-            print("------------------------------ Splitting Corine rasters to categories:water ------------------------------")
-            cmds = 'python {3}/gdal_calc.py -A "{0}" --A_band=1 --outfile="{1}/corine/water_{2}" --calc="logical_and(A<=44,A>=40)"'.format(filePath,temp_tif_path, file, python_scripts_folder_path)
-            subprocess.call(cmds, shell=True)
+            #As the water bodies do not include the port of Copenhagen, it gets combined with other layer --> percentages of water cover 
+            waterPerc = temp_tif_path + "/cph_water_cover.tif"
+            print("------------------------------ Splitting Corine rasters to categories:Water Bodies and Wetlands Combines with water cover (percentages) produced in Postgres with (vectors) lakes, wetlands and sea  ------------------------------")
+            cmds = 'python {3}/gdal_calc.py -A "{1}/corine/water_{2}" -B "{4}" --A_band=1 --B_band=1 --outfile="{1}/corine/waterComb_{2}" --calc="maximum(A*100, B)/100"'.format(filePath,temp_tif_path, file, python_scripts_folder_path, waterPerc)
+            #subprocess.call(cmds, shell=True)
             
     # ----- Creating Grid ------------------------
     print("------------------------------ Creating Grid ------------------------------")
@@ -202,40 +196,7 @@ def initialProcess(engine, ancillary_data_folder_path,ancillary_EUROdata_folder_
         print("Creating {0} grid Case Study Area Nuts3".format(city))
         iteration_grid.to_postgis('{0}_iteration_grid'.format(city),engine)
 
-    # Create Table for bbox
-    print("---------- Creating table for Bbox, if it doesn't exist ----------")
-    print("Checking {0} bounding box table".format(city))
-    cur.execute("SELECT EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = '{0}_bbox');".format(city))
-    check = cur.fetchone()
-    if check[0] == False:
-        print("Creating {0} bounding box table from grid".format(city))
-        # bbox from NUTS3 (+buffer = 100m):
-        cur.execute("create table {0}_bbox as \
-                    SELECT ST_Buffer(ST_SetSRID(ST_Extent(geometry),3035) \
-                    ,0 ,'endcap=square join=mitre') as geom FROM {0}_grid;".format(city))
-        conn.commit()
-    else:
-        print("{0} bounding box table already exists".format(city))
     
-    """# Create table for CPH buildings ----------------------------------------------------------------------------------------
-    print("---------- Creating necessary tables, if they don't exist ----------")
-    print("Checking {0} buildings table".format(city))
-    cur.execute("SELECT EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = '{0}_buildings');".format(country))
-    check = cur.fetchone()
-    if check[0] == False:
-        print("Creating {0} buildings table from case study extent".format(city))
-        # table for buildings in case study:
-        cur.execute("create table {0}_buildings as \
-                    select buildings.fot_id, buildings.timeof_cre, ST_Intersection(ST_Transform(buildings.geom, 3035), {0}_cs.geom) as geom\
-                    FROM buildings, cph_cs\
-                    where ST_Intersects(ST_Transform(buildings.geom, 3035), {0}_cs.geom);".format(city))
-        conn.commit()
-    else:
-        print("{0} buildings table already exists".format(city))
-    
-#_______________________Water Bodies (Sea, Lakes, Wetlands)_________________________
-# Reprojection, Clip to Extent, Union, Rasterize"""
-
 def importWater(ancillary_data_folder_path, city, country,cur,conn):
 
     print("Checking {0} subdivided ocean table".format(city))

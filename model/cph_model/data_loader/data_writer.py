@@ -2,9 +2,9 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 import os
-import osr
+
 import pandas as pd
-from osgeo import gdal
+from osgeo import gdal, osr
 
 class DataWriter():
 

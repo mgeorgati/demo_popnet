@@ -1,7 +1,4 @@
-import os
-import subprocess
-import time
-import geopandas as gpd
+
 from basicFunctions import createFolder
 
 def calcPrimarySchools(ancillary_data_folder_path,city,cur,conn,year, comp_year, BBRtype):

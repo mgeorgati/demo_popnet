@@ -1,7 +1,7 @@
 import os
 import subprocess
 import psycopg2
-import gdal
+from osgeo import gdal
 import geopandas as gpd
 from shapely.geometry import Polygon
 
@@ -101,6 +101,7 @@ def shptoraster(city, gdal_rasterize_path, xres, yres, temp_shp_path, temp_tif_p
     dst_file = dst_path + "/{0}_{1}.tif".format(year, BBRtype)
     cmd = '{0}/gdal_rasterize.exe -a {9}_{10} -te {1} {2} {3} {4} -tr {5} {6} {7} {8}'\
         .format(gdal_rasterize_path, minx, miny, maxx, maxy, xres, yres, src_file, dst_file, year, BBRtype)
+    print(cmd)
     subprocess.call(cmd, shell=True)
 
 

@@ -4,7 +4,7 @@ from calcMean import createSognMean, combineFiles
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from variables import ancillary_POPdata_folder_path, ancillary_data_folder_path, city
-from csv_to_raster import createFolder
+from mainFunctions import createFolder
 
 districtsPath = ancillary_data_folder_path + "/adm/neighborhood_orig.geojson"
 ## ## ## ## ## ----- CHOOSE DATASET TO PROCESS  ----- ## ## ## ## ##

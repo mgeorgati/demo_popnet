@@ -1,6 +1,6 @@
 import os
 import subprocess
-import gdal
+from osgeo import gdal
 
 def psqltoshp(city, pgpath, pghost, pgport, pguser, pgpassword, pgdatabase, cur, conn, temp_shp_path):
     os.environ['PATH'] = pgpath

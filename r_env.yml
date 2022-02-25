@@ -1,0 +1,8 @@
+name: r_env
+channels:
+  - r
+  - conda-forge
+dependencies:
+  - r-essentials = 3.6.0
+  #- r-base = 4.1.1
+

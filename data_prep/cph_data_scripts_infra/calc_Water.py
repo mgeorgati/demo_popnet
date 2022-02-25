@@ -1,7 +1,3 @@
-import os
-import subprocess
-import gdal
-import psycopg2
 import time
 
 #ADD Wetlands : C:\FUME\popnetv2\data_scripts\cph_ProjectData\AncillaryData\1084_SHAPE_UTM32-EUREF89\FOT\NATUR< VAADOMRAADE.shp

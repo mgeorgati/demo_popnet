@@ -1,7 +1,7 @@
 import tensorflow as tf
 import os
-from osgeo import gdal
-import osr
+#from osgeo import gdal
+#import osr
 import sys
 import numpy as np
 import time
@@ -44,20 +44,20 @@ def remove_files(trial_dir,country):
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 config_dir = base_dir + '/configs'
 
-countries = [ "Latin_America_and_the_Caribbean","EurEUNoLocal","Western_Asia"] # <<<<< ----- CHANGE HERE ----- >>>>>
+countries = [ "Latin_America_and_the_Caribbean","EuropeNotEU","Western_Asia"] # <<<<< ----- CHANGE HERE ----- >>>>>
 #"Centr_Asia","East_Asia","EurNotEU", "Latin_Amer", "North_Afr"
 # "Latin_America_and_the_Caribbean","Northern_Africa", "Northern_America", "Northern_Europe","Oceania","Southern_Asia","Southern_Europe", "Southern-Eastern_Asia", "Sub-Saharan_Africa", "Western_Asia", "Western_Europe"
 #"Eastern_Europe", "Latin_America_and_the_Caribbean",
 #countries=[] #,''pol','deu','tur' 'irq','pol','deu','tur'
 city="ams"
-trialNo = "trial01" # <<<<< ----- CHANGE HERE ----- >>>>>
+trialNo = "trial09" # <<<<< ----- CHANGE HERE ----- >>>>>
 trial_dir = base_dir + '/data/{0}/{1}'.format(city,trialNo)
 
 # ------- CAREFUL HERE !!!! -------
-"""for country in os.listdir(trial_dir):
+for country in os.listdir(trial_dir):
     if not country.endswith('_proj'): 
         countries.append(country)
-        remove_files(trial_dir,country) """
+        remove_files(trial_dir,country) 
         
 def run_all():
     for country in countries:

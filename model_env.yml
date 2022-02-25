@@ -1,0 +1,18 @@
+name: model_env
+channels:
+  - defaults
+  - conda-forge
+  - anaconda
+  
+dependencies:
+  - python = 3.7.6
+  - gdal = 3.3.2
+  - seaborn = 0.11.2
+  - rasterio = 1.2.10
+  - bunch = 1.0.1
+  - tqdm = 4.62.3
+  - scikit-learn = 0.24.2
+  - tensorflow = 1.14.0 
+
+#conda env update --name myenv --file local.yml --prune
+#conda env create -f pop_env.yml

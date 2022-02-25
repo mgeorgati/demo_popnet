@@ -1,13 +1,23 @@
 import os
 import psycopg2
 from sqlalchemy import create_engine
+
 base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 city ='ams'
 # Paths for the Population Data --------------------------------------------------------------
 #path to ancillary data folder
-ancillary_data_folder_path = base_dir + "/data_prep/{}_ProjectData/AncillaryData".format(city)
-ancillary_POPdata_folder_path = base_dir + "/data_prep/{}_ProjectData/PopData".format(city)
+ancillary_data_folder_path = base_dir + "/data_prep/{}_Projectdata/AncillaryData".format(city)
+ancillary_POPdata_folder_path = base_dir + "/data_prep/{}_Projectdata/PopData".format(city)
+ancillary_EUROdata_folder_path =  base_dir + "/data_prep/euroData"
 
+# Other Paths to necessary python scripts and functions ----------------------------------------------------------------
+# path to folder containing gdal_calc.py and gdal_merge.py
+python_scripts_folder_path = r'C:/Users/NM12LQ/Anaconda3/envs/pop_env/Scripts' #O:/projekter/PY000014_D/popnet_env/Scripts
+#path to folder with gdal_rasterize.exe
+gdal_rasterize_path = r'C:/Users/NM12LQ/Anaconda3/envs/pop_env/Library/bin' #O:/projekter/PY000014_D/popnet_env/Library/bin
+gdal_path = r'C:/Users/NM12LQ/Anaconda3/envs/pop_env/Lib/site-packages/osgeo'
+
+deliver_path = base_dir + "/data_prep/Deliverable"
 # Specify database information -----------------------------------------------------------------------------------------
 # path to postgresql bin folder
 pgpath = r";C:/Program Files/PostgreSQL/9.5/bin"
@@ -20,12 +30,7 @@ engine = create_engine(f'postgresql://{pguser}:{pgpassword}@{pghost}:{pgport}/{p
 conn = psycopg2.connect(database=pgdatabase, user=pguser, host=pghost, password=pgpassword,sslmode="disable",gssencmode="disable")
 cur = conn.cursor()
 
-# Other Paths to necessary python scripts and functions ----------------------------------------------------------------
-# path to folder containing gdal_calc.py and gdal_merge.py
-python_scripts_folder_path = r'C:/Users/NM12LQ/Anaconda3/envs/popnet_env/Scripts' #O:/projekter/PY000014_D/popnet_env/Scripts
-#path to folder with gdal_rasterize.exe
-gdal_rasterize_path = r'C:/Users/NM12LQ/Anaconda3/envs/popnet_env/Library/bin' #O:/projekter/PY000014_D/popnet_env/Library/bin
-
+# Specify countries by region -----------------------------------------------------------------------------------------
 country_Orig = {"Oceania" : ["aus","cxr", "cck", "hmd", "nzl", "nfk",
                         "fji","png","slb","vut", "ncl",
                         "gum","kir","mhl","fsm","nru","mnp","plw","umi",
@@ -143,4 +148,44 @@ country_Orig = {"Oceania" : ["aus","cxr", "cck", "hmd", "nzl", "nfk",
                         "cpv","civ","gmb","gha","gin","gnb","lbr","mli","mrt","ner",
                         "shn","sle","tgo"],
             "Others": ["oth","unk","othe","urs","otham","yug","othaf","cenam","nstd","othme","othas","scg","tch","othna","sta"] ,
-            "Colonies" :['ukcol','belcol','prtcol','nldcol','fracol' ] }
+            "Colonies" :['ukcol','belcol','prtcol','nldcol','fracol' ]}
+
+country_OrigWnW = {"nld":['nld'],
+                   "ant":['ant'],
+                   "mar":['mar'],
+                   "tur":['tur'],     
+            "Western":["aus","cxr", "cck", "hmd", "nzl", "nfk",
+                        "fji","png","slb","vut", "ncl",
+                        "gum","kir","mhl","fsm","nru","mnp","plw","umi",
+                        "asm","cok","pyf","niu","pcn","wsm","tkl","ton","tuv","wlf",
+                        "pol", "blr","bgr","cze","hun","mda","rou","rus","svk","ukr",
+                        "bih","mkd","alb","and","hrv","gib","grc","vat","mlt","mne",
+                        "prt","ita","smr","srb","svn","esp",
+                        "deu","aut","bel","fra","lie","lux","mco","che",
+                        "gbr","nor","irl","swe","lva","est","isl","sjm","fro","fin",
+                        "jey","imn","ltu","ggy","ala", "dnk",
+                        "bmu","can","grl","spm","usa",
+                        "jpn", "idn"],
+            "nonWestern":["kaz","kgz","tjk","tkm","uzb",
+                    "chn", "hkg", "mac", "prk", "mng", "kor",
+                    "phl","vnm","brn","khm","lao","mys","mmr","sgp","tha",
+                    "tls",
+                    "afg","ind","irn","pak","bgd","btn","npl", "mdv","lka",
+                    "arm","aze","bhr","geo","irq","isr","jor","kwt","lbn","omn",
+                    "qat","sau","pse","syr","are","yem","cyp",
+                        "aia","atg","abw","bhs","brb","bes","vgb","cym","cub","cuw",
+                        "dma","dom","grd","glp","hti","jam","mtq","msr","pri","blm",
+                        "kna","lca","maf","vct","sxm","tto","tca","vir","blz","cri",
+                        "slv","gtm","hnd","mex","nic","pan","arg","bol","bvt","bra",
+                        "chl","col","ecu","flk","guf","guy","pry","per","sgs","sur",
+                        "ury","ven",
+                        "dza","egy","lby","sdn","tun","esh",
+                        "cmr","som","nga","sen", "iot","bdi","com","dji","eri","eth",
+                        "atf","ken","mdg","mwi","mus","myt","moz","reu","rwa","syc",
+                        "ssd","uga","tza","zmb","zwe","ago","caf","tcd","cog","cod",
+                        "gnq","gab","stp","bwa","swz","lso","nam","zaf","ben","bfa",
+                        "cpv","civ","gmb","gha","gin","gnb","lbr","mli","mrt","ner",
+                        "shn","sle","tgo"
+                    'ukcol','belcol','prtcol','fracol', #'nldcol'
+                    "oth","unk","othe","urs","otham","yug","othaf","cenam","nstd","othme","othas","scg","tch","othna","sta"
+            ]}

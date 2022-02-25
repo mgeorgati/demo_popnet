@@ -1,7 +1,7 @@
 import os
 import subprocess
 import psycopg2
-import gdal
+from osgeo import gdal
 import geopandas as gpd
 from shapely.geometry import Polygon
 from rast_to_vec_grid import rasttovecgrid

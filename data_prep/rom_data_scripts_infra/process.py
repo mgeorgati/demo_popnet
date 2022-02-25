@@ -1,16 +1,14 @@
 # Imports
-import subprocess
+
 import os
-import gdal
-import ogr
-import osr
-import psycopg2
+
 import time
 from importDataDB import initPostgis, initPgRouting, initialProcess  #, importWater, importTrainStations,importBusStops, import_buildings
 from calc_Water import  calculateWater, water_dbTOtif #processCanals,
 from calc_Streets import createNetwork
 from calc_Rails import importTrainStops, computeTrainIsochrones, calculateTrainCount
 from calc_Buses import importBusStops, computeBusIsochronesWalk, calculatebusCountWalk 
+from DBtoRaster import bdTOraster
 
 #from DBtoRaster import psqltoshp, shptoraster, bdTOraster
 
@@ -18,8 +16,8 @@ def process_data(engine, pgpath, pghost, pgport, pguser, pgpassword, pgdatabase,
                     initExtensionPostGIS, initExtensionPGRouting, initImportProcess, 
                     init_waterProcess,  waterProcess00, waterProcess01, 
                     init_streetProcess, 
-                    init_trainProcess, trainProcess00, trainProcess01, trainProcess02, #trainProcess03, trainProcess04,
-                    init_busProcess,busProcess00, busProcess01, busProcess02, #busProcess03,
+                    init_trainProcess, trainProcess00, trainProcess01, trainProcess02, trainProcess03, #trainProcess04,
+                    init_busProcess,busProcess00, busProcess01, busProcess02, busProcess03,
                     #init_psqltoshp ,init_shptoraster
                     ):
                     #init_buildingsProcess,
@@ -76,8 +74,12 @@ def process_data(engine, pgpath, pghost, pgport, pguser, pgpassword, pgdatabase,
         if busProcess02 == "yes":
             print("------------------------------ COMPUTING COUNT OF ISOCHRONES FOR CELL IN GRID FOR BUS STOPS {0} ------------------------------")
             calculatebusCountWalk(ancillary_data_folder_path, city, conn, cur)
+        if busProcess03 == "yes":
+            layer = '{}_busstopscount'.format(city)
+            layerFolder= '{}_busstops'.format(city)
+            layerName = '{}_busstops'.format(city)
+            bdTOraster(city, gdal_rasterize_path,engine, 100, 100, temp_shp_path, temp_tif_path, layer, layerFolder, layerName)
 
-    
     # Processing train and metro Station data to postgres--------------------------------------------------------------------------------------
     if init_trainProcess == "yes":       
         if trainProcess00 == "yes":
@@ -88,9 +90,14 @@ def process_data(engine, pgpath, pghost, pgport, pguser, pgpassword, pgdatabase,
         if trainProcess02 == "yes":
             print("------------------------------ COMPUTING ISOCHRONES FOR TRAIN STATIONS BIKING 15' with 15km/h------------------------------")
             calculateTrainCount(ancillary_data_folder_path, city, conn, cur)
+        if trainProcess03 == "yes":
+            layer = '{}_trainstopscount'.format(city)
+            layerFolder= '{}_trainstations'.format(city)
+            layerName = '{}_trainstations'.format(city)
+            bdTOraster(city, gdal_rasterize_path,engine, 100, 100, temp_shp_path, temp_tif_path, layer, layerFolder, layerName)
             
-    """
-        
+
+    """    
     if init_psqltoshp == "yes":
         psqltoshp(city, pgpath, pghost, pgport, pguser, pgpassword, pgdatabase,cur, conn, temp_shp_path)
 

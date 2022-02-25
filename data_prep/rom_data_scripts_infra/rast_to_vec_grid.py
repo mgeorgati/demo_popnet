@@ -1,5 +1,5 @@
 import os
-import ogr
+from osgeo import ogr
 from math import ceil
 
 def rasttovecgrid(outputGridfn,xmin,xmax,ymin,ymax,gridHeight,gridWidth):

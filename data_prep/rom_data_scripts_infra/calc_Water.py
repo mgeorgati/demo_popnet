@@ -1,6 +1,6 @@
 import os
 import subprocess
-import gdal
+from osgeo import gdal
 import psycopg2
 import time
 import geopandas as gpd

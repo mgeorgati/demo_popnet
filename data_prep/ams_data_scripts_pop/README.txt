@@ -15,3 +15,38 @@ You need:
     - NeighborhoodDemoDataPreparation : assign geometry to neighborhoods
 
     How to downscale?
+
+Folder Processes:
+    1. CleanRawGridCellData --> Cleaning and harmonizing the data at grid cell level 
+    2. CleanRawNeighData --> Cleaning and harmonizing the data at neighborhood level
+    3. csvTOraster --> Convert excel to raster, sum by regions and merge tiffs
+        .csv_to_raster 
+            - excel to geojson, summing populations by regions ({0}_dataVectorGrid.geojson, {0}_dataVectorGridSums.geojson)
+            - geojson to raster
+        .calcPercentages 
+            - calc Z0, Z1 in geojson (0}_dataVectorGridDivs.geojson)
+            - rasterize Z0, Z1
+        .normalise
+        .mergeSelectionCoI !->>>>> Needs attention <<<<<-!
+    
+    4. aggregateGridtoNeigh --> Zonal Statistcs to aggregate the grid cell data to neighborhood level
+    
+    5. bivariateMaps !->>>>> Needs attention <<<<<-! R
+    
+    6. correlations --> Checking Correlations among selections and countries based on regions of origin --> returning matrix in EXCEL and PNG
+    
+    7. randomPoints --> !->>>>> Needs attention <<<<<-! 
+
+    8. tricolore
+
+    9. vizRawData --> Visualizations of raw data in line graphs 
+        This folder contains:
+            1. lineDiagramCountriesPerRegion.py 
+                A. reads the sum geojsons files from PopData
+                B. sums the population by geographical region based on variables and saves it to EXCEL files in the EXCEL folder
+                C. reads the EXCEL files and produces line diagrams for each region
+            2. Visualizations.py --> line diagrams for various groups 
+    
+    10. PySal -->  
+
+    11. disaggregation

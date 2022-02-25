@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import subprocess
-import psycopg2
+from osgeo import gdal
 import time
 import geopandas as gpd
 
@@ -70,7 +70,7 @@ def computeBusIsochronesWalk(ancillary_data_folder_path,city,cur,conn, engine, t
                         where id ={1}".format(city, cl_id)) # average is 15 km/h and travel time is 15'
         conn.commit()
 
-def calculatebusCountWalk(ancillary_data_folder_path, city, conn, cur):
+def calculatebusCountWalk(ancillary_data_folder_path, city, conn, cur, engine, temp_shp_path, temp_tif_path, gdal_rasterize_path):
    
     print("Checking {0} cover analysis - bus stations column".format(city))
     cur.execute("SELECT EXISTS (SELECT 1 \
@@ -141,6 +141,7 @@ def calculatebusCountWalk(ancillary_data_folder_path, city, conn, cur):
             # calculate single chunk query time in minutes
             total = (t1 - t0) / 60
             print("Chunk number: {0} took {1} minutes to process".format(chunk, total))
+               
     # stop total query time timer
     stop_query_time = time.time()
 

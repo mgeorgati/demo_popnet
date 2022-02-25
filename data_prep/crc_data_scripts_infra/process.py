@@ -1,21 +1,20 @@
 # Imports
-import subprocess
 import os
-import gdal
-import ogr
-import osr
-import psycopg2
 import time
 from importDataDB import initPostgis, initPgRouting, initialimports, initialProcess#, importWater, importTrainStations,importBusStops, import_buildings
-#from calc_Water import calculateWater
-#from calc_Streets import importStreets, createNetwork
-#from calc_Rails import computeTrainIsochrones,calculateTrainCount
-#from calc_Buses import computeBusIsochrones, calculateBusCount
+from calc_Water import processCanals ,calculateWater, water_dbTOtif
+from calc_Streets import createNetwork
+from calc_Rails import computeTrainIsochrones, calculateTrainCount
+from calc_Buses import computeBusIsochronesWalk, calculatebusCountWalk
+from DBtoRaster import bdTOraster
 
-from DBtoRaster import psqltoshp, shptoraster
-
-def process_data(engine, pgpath, pghost, pgport, pguser, pgpassword, pgdatabase, ancillary_data_folder_path,ancillary_EUROdata_folder_path,cur,conn, city,country,nuts3_cd1, temp_shp_path, temp_tif_path, temp_tif_corine, python_scripts_folder_path,
-                    initExtensionPostGIS, initExtensionPGRouting,initImports, initImportProcess, init_waterProcess, init_streetProcess, init_trainProcess,init_busProcess,init_psqltoshp ,init_shptoraster):
+def process_data(engine, pgpath, pghost, pgport, pguser, pgpassword, pgdatabase, ancillary_data_folder_path,ancillary_EUROdata_folder_path,cur,conn, 
+                 city,country,nuts3_cd1, temp_shp_path, temp_tif_path, temp_tif_corine, python_scripts_folder_path, gdal_rasterize_path,
+                    initExtensionPostGIS, initExtensionPGRouting,initImports, initImportProcess, 
+                    init_waterProcess, waterProcess00, waterProcess01, waterProcess02,
+                    init_streetProcess, 
+                    init_trainProcess, trainProcess00, trainProcess01, trainProcess02,
+                    init_busProcess, busProcess00, busProcess01, busProcess02):
                     #init_buildingsProcess,
     #Start total preparation time timer
     start_total_algorithm_timer = time.time()
@@ -47,61 +46,54 @@ def process_data(engine, pgpath, pghost, pgport, pguser, pgpassword, pgdatabase,
         print("------------------------------ IMPORT AND CREATE BASIC TABLES ------------------------------")
         initialProcess(engine, ancillary_data_folder_path,ancillary_EUROdata_folder_path,pgpath, pghost, pgport, pguser, pgpassword,pgdatabase,conn, cur, nuts3_cd1, city,country, temp_shp_path, temp_tif_path, temp_tif_corine, python_scripts_folder_path)
     
-    """# Import ocean table and create the subdividd waterbodies table in combination with lakes 
-        print("------------------------------ IMPORT AND CREATE TABLE FOR WATERBODIES ------------------------------")
-        #importWater(cur,conn)
-    
-    # Import table for train stations and create table for the case study 
-        print("------------------------------ IMPORT AND CREATE TABLE FOR TRAIN STATIONS ------------------------------")
-        #importTrainStations(ancillary_data_folder_path,cur,conn)
-    
-    # Import table for bus and streets and create table for the case study 
-        print("------------------------------ IMPORT AND CREATE TABLE FOR BUS STOPS ------------------------------")
-        #importBusStops(ancillary_data_folder_path,city,conn,cur)
-    
     # Processing WATER data to postgres--------------------------------------------------------------------------------------
     if init_waterProcess == "yes":
-        print("------------------------------ CREATING Water ------------------------------")
-        importWater(ancillary_data_folder_path,city, country, cur,conn)
-        print("------------------------------ CREATING Water ------------------------------")
-        calculateWater(city,country,conn,cur)
+        if waterProcess00 == "yes":
+            print("------------------------------ IMPORT AND CREATE TABLE FOR WATERBODIES ------------------------------")
+            print("------------------------------ PROCESS WATERBODIES ------------------------------")
+            processCanals(ancillary_data_folder_path, temp_shp_path, city, country, engine, cur )
+        if waterProcess01 == "yes":
+            print("------------------------------ CALCULATE WATER COVERGAE PERCENTAGE ------------------------------")
+            calculateWater(city,country,conn,cur)
+        if waterProcess02 == "yes":
+            print("------------------------------ DB TO SHP AND RASTERIZE AND COMBINE TO CORINE WATER ------------------------------")
+            water_dbTOtif(city, gdal_rasterize_path, cur, conn, engine, 100, 100, temp_shp_path, temp_tif_path, python_scripts_folder_path)
     
     # Processing STREET data to postgres--------------------------------------------------------------------------------------
     if init_streetProcess == "yes":
         print("------------------------------ CREATING NETWORK ------------------------------")
-        createNetwork(pgpath,pghost,pgport, pguser, pgpassword, pgdatabase,ancillary_data_folder_path,cur,conn,city)
-    
+        createNetwork(ancillary_data_folder_path,cur,conn,engine, city, temp_shp_path)
+ 
+    # Processing train and metro Station data to postgres--------------------------------------------------------------------------------------
+    if init_trainProcess == "yes":       
+        if trainProcess00 == "yes":
+            print("------------------------------ COMPUTING COUNT OF ISOCHRONES FOR CELL IN GRID FOR TRAIN STATIONS {0} ------------------------------")
+            print("------------------------------ COMPUTING ISOCHRONES FOR TRAIN STATIONS BIKING 15' with 15km/h------------------------------")
+            computeTrainIsochrones(ancillary_data_folder_path,city,cur,conn, engine, temp_shp_path)
+        if trainProcess01 == "yes":
+            print("------------------------------ COMPUTING COUNT OF ISOCHRONES FOR CELL IN GRID FOR TRAIN STATIONS {0} ------------------------------")
+            calculateTrainCount(city, conn, cur)
+        if trainProcess02 == "yes":
+            print("------------------------------ RASTERIZING TRAIN STATIONS ------------------------------")
+            layer = "{}_trainstopscount".format(city)
+            layerFolder = "{}_trainstations".format(city)
+            layerName = "{}_trainstations".format(city)
+            bdTOraster(city, gdal_rasterize_path,engine, 100,100 , temp_shp_path, temp_tif_path, layer, layerFolder, layerName)
+   
     # Processing Train Station data to postgres--------------------------------------------------------------------------------------
-    if init_trainProcess == "yes":   
-        print("------------------------------ COMPUTING ISOCHRONES FOR TRAIN STATIONS ------------------------------")
-        years=[1990,1992,1994,1996,1998,2000,2002,2004,2006,2008,2010,2012,2014,2016,2018,2020]
-        for year in years:
-            print("------------------------------ COMPUTING ISOCHRONES FOR TRAIN STATIONS {0} ------------------------------".format(year))
-            computeTrainIsochrones(ancillary_data_folder_path, city, cur, conn, year)
-            print("------------------------------ COMPUTING COUNT OF ISOCHRONES FOR CELL IN GRID FOR TRAIN STATIONS {0} ------------------------------".format(year))
-            calculateTrainCount(ancillary_data_folder_path, city, conn, cur, year)
-      
-     # Processing STREET data to postgres--------------------------------------------------------------------------------------
-    if init_busProcess == "yes":
-        print("------------------------------ COMPUTING ISOCHRONES FOR BUS STOPS ------------------------------")
-        years=[]
-        cur.execute("SELECT distinct(year) FROM {0}_busst where year% 2 = 0 AND year>2016 AND year<=2020 order by year ASC;".format(city))
-        year_id = cur.fetchall()
-        for id in year_id:
-            years.append(id[0])
-        print(years)
-        
-        for year in years:
-            print("------------------------------ COMPUTING ISOCHRONES FOR BUS STOPS {0} ------------------------------".format(year))
-            computeBusIsochrones(ancillary_data_folder_path, city, cur, conn,year)
-            print("------------------------------ COMPUTING COUNT OF ISOCHRONES FOR CELL IN GRID FOR TRAIN STATIONS {0} ------------------------------".format(year))
-            calculateBusCount(ancillary_data_folder_path, city, conn, cur, year)
-    
-    if init_psqltoshp == "yes":
-        psqltoshp(city, pgpath, pghost, pgport, pguser, pgpassword, pgdatabase,cur, conn, temp_shp_path)
-
-    if init_shptoraster == "yes":
-        shptoraster(city, gdal_rasterize_path, cur, conn, 100,100, temp_shp_path, temp_tif_path)"""
+    if init_busProcess == "yes": 
+        if busProcess00 == "yes":  
+            print("------------------------------ IMPORT OSM DATA FOR BUS STOPS ------------------------------")   
+            print("------------------------------ COMPUTE ISOCHRONES FOR BUS STOPS WALKING------------------------------")
+            computeBusIsochronesWalk(ancillary_data_folder_path,city,cur,conn, engine, temp_shp_path)
+        if busProcess01 == "yes":
+            print("------------------------------ COMPUTING COUNT OF ISOCHRONES FOR CELL IN GRID FOR BUS STOPS {0} ------------------------------")
+            calculatebusCountWalk(ancillary_data_folder_path, city, conn, cur)
+        if busProcess02 == "yes":
+            print("------------------------------ RASTERIZING BUS STOPS ------------------------------")
+            layer = "{}_busstopscount".format(city)
+            layerFolder = "{}_busstops".format(city)
+            bdTOraster(city, gdal_rasterize_path,engine, 100,100, temp_shp_path, temp_tif_path, layer, layerFolder, layerFolder )
     
     # stop total algorithm time timer ----------------------------------------------------------------------------------
     stop_total_algorithm_timer = time.time()
