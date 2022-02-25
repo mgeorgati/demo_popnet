@@ -14,6 +14,15 @@ def createFolder(path):
         os.makedirs(path)
     else: 
         print("------------------------------ Folder already exists------------------------------")
+
+#A function to compare the elements of 2 lists
+def non_match_elements(list_a, list_b):
+    non_match = []
+    for i in list_a:
+        if i not in list_b:
+            non_match.append(i)
+    return non_match
+
 import geopandas as gpd
 import json
 from rasterstats import zonal_stats

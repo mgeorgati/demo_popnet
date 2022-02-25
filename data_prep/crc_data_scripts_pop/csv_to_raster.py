@@ -7,6 +7,7 @@ import xlrd
 from shapely.wkt import loads
 import glob
 from pathlib import Path
+
 def non_match_elements(list_a, list_b):
     non_match = []
     for i in list_a:
@@ -48,7 +49,7 @@ def csvtoshp(ancillary_POPdata_folder_path,ancillary_data_folder_path,city, year
             frame = frame.join(df.set_index('Eurogrid'), on='Eurogrid', lsuffix='_l')
         elif name =='Age':
             df = pd.read_csv(i)
-            df = df.rename(columns={'X0.19':'children', 'X20.29':'students', 'X30.44':'mobile_adults', 'X45.64':'not_mobile_adults', 'X65.':'elderly', 'Total':'totalpop'})
+            df = df.rename(columns={'X0.19':'children', 'X20.29':'yadults', 'X30.44':'mobadults', 'X45.64':'nmobadults', 'X65.':'elderly', 'Total':'totalpop'})
             frame = frame.join(df.set_index('Eurogrid'), on='Eurogrid', lsuffix='_l')
         elif name == 'POP':
             df = pd.read_csv(i)
@@ -68,6 +69,7 @@ def csvtoshp(ancillary_POPdata_folder_path,ancillary_data_folder_path,city, year
     
     polys = gpd.read_file(os.path.dirname(ancillary_data_folder_path) + "/temp_shp/{0}_grid.shp".format(city), crs="EPSG:3035")
     #gdf_points=  gpd.read_file(ancillary_POPdata_folder_path + "/{0}/temp_shp/{0}_dataVectorPoints.geojson".format(year), crs="EPSG:3035")
+    
     gdf_joined = gpd.sjoin(gdf_points, polys, how='left', op='within') # Here I am using intersects with left join
     print(gdf_joined.head(5))
     #remove the point geometry and add the polygon geometry
@@ -100,76 +102,59 @@ def csvtoshp(ancillary_POPdata_folder_path,ancillary_data_folder_path,city, year
     #print("------------------------------ Creating shapefile:{0} on Points------------------------------".format(year)) 
     #gdf_points.to_file(ancillary_POPdata_folder_path + "/{0}/temp_shp/{0}_dataPoints.shp".format(year))
 
-"""
-def csvtoshp(ancillary_POPdata_folder_path,ancillary_data_folder_path,city, dictionary):
-    #Combine all the csv files in one shp for points and another one for polygons with the vector grid            
+def csvtoshpMUW(ancillary_POPdata_folder_path,ancillary_data_folder_path,city, year, dictionary):
     path = ancillary_POPdata_folder_path + "/rawData" # use your path
-    li = []
     
-    for filename in os.listdir(path):
-        print(filename)
-        file_path = path + '/' + filename
-        year = filename.split("Krakow_")[-1].split(".xlsx")[0]
-        print(year)
-        df = pd.read_excel(file_path, header=0, skiprows=1 )
-        
-        #split the Grid column to x,y coordinates and make geometry    
-        y=df['Eurogrid'].str.split('N', 1).str[0]
-        x=df['Eurogrid'].str.split('N', 1).str[1].str.split('E', 1).str[0]
-        df['y'] = y.astype(int)
-        df['x'] = x.astype(int)
-        print(df.head(5))
-        gdf_points = gpd.GeoDataFrame(
-                df, geometry=gpd.points_from_xy(df['x'], df['y']), crs='epsg:3035')
-        print(gdf_points.crs)
-        # spatial join between the vector grid and the points
-        polys = gpd.read_file(os.path.dirname(ancillary_data_folder_path) + "/temp_shp/{0}_grid.shp".format(city), crs="EPSG:3035")
-        polys = polys.set_crs("EPSG:3035")
-        print(polys.crs)
-        print(polys.head(5))
-        gdf_joined = gpd.sjoin(gdf_points, polys, how='left', op='within') # Here I am using intersects with left join
-        print(gdf_joined.head(5))
-        #remove the point geometry and add the polygon geometry
-        gdf = gdf_joined.loc[:, gdf_joined.columns != 'geometry']
-        print(gdf.head(5))
-        gdf_merged = gdf.merge(polys, how='inner', on='FID')
-        
-        #Create total population column
-        columns_dont_want = ["GRID", "y", "x", "index_right", "FID", "geometry"]
-        select = [x for x in gdf_merged.columns if x not in columns_dont_want]
-        gdf_merged['totalPop'] = gdf_merged.loc[:, select].sum(axis=1)
-        #Create total FOREIGNER population column
-        columns_dont_want1 = ["GRID","POL","totalPop", "y", "x", "index_right", "FID", "geometry"]
-        select1 = [x for x in gdf_merged.columns if x not in columns_dont_want1]
-        gdf_merged['totalMig'] = gdf_merged.loc[:, select1].sum(axis=1)
-        gdf_merged['MigPerTotal'] = (gdf_merged['totalMig']/gdf_merged['totalPop'])*100
-        print(gdf_merged.head(5))
-        
-        for col in gdf_merged.columns:
-            gdf_merged = gdf_merged.rename(columns={'{}'.format(col):'{}'.format(col.lower())})
-        keyList=[]
-        for key in dictionary:
-            keyList.append(key)
-            selectList = dictionary['{}'.format(key)]
-            print(key, selectList) 
-            select = [x for x in gdf_merged if x in selectList]
-            print(select)
-            gdf_merged['{}'.format(key)] = gdf_merged.loc[:, select].sum(axis=1)
-            gdf_merged['{}'.format(key)].astype(int)
-            print(gdf_merged['{}'.format(key)].sum())
-        
-        gdf_merged['notEU'] = gdf_merged['totalmig'] - gdf_merged['EU']
-        gdf_merged['notEU'].astype(int)
-        print(gdf_merged['notEU'].sum())
+    frame = pd.read_csv(path + "/MUW_Immigrants/FUME_MUW_KRAKOW_{}.csv".format(year))
+    frame = frame.set_index('Eurogrid')
+   
+    print(frame.head(2))  
+    frame.reset_index(inplace=True)
+    frame = frame.rename(columns = {'index':'Eurogrid'})
+    #split the Grid column to x,y coordinates and make geometry    
+    y=frame['Eurogrid'].str.split('N', 1).str[0]
+    x=frame['Eurogrid'].str.split('N', 1).str[1].str.split('E', 1).str[0]
+    frame['y'] = y.astype(int)
+    frame['x'] = x.astype(int)
+    print(frame.head(5))
+    gdf_points = gpd.GeoDataFrame(
+            frame, geometry=gpd.points_from_xy(frame['x'], frame['y']), crs='epsg:3035')
+    gdf_points.to_file(ancillary_POPdata_folder_path + "/{0}/temp_shp/{0}_dataVectorPoints_MUW.geojson".format(year), driver='GeoJSON', crs='EPSG:3035')
     
-        #save shapefiles to folder
-        print("------------------------------ Creating shapefile:{0} on Vector Grid------------------------------".format(year)) 
-        gdf_merged.to_file(ancillary_POPdata_folder_path + "/{0}/temp_shp/{0}_dataVectorGrid.geojson".format(year), driver='GeoJSON', crs='EPSG:3035')
-        #save shapefiles to folder
-        #print("------------------------------ Creating shapefile:{0} on Points------------------------------".format(year)) 
-        #gdf_points.to_file(ancillary_POPdata_folder_path + "/{0}/temp_shp/{0}_dataPoints.shp".format(year))
-"""
+    polys = gpd.read_file(os.path.dirname(ancillary_data_folder_path) + "/temp_shp/{0}_grid.shp".format(city), crs="EPSG:3035")
+    #gdf_points=  gpd.read_file(ancillary_POPdata_folder_path + "/{0}/temp_shp/{0}_dataVectorPoints.geojson".format(year), crs="EPSG:3035")
+    
+    gdf_joined = gpd.sjoin(gdf_points, polys, how='left', op='within') # Here I am using intersects with left join
+    print(gdf_joined.head(5))
+    #remove the point geometry and add the polygon geometry
+    gdf = gdf_joined.loc[:, gdf_joined.columns != 'geometry']
+    print(gdf.head(5))
+    gdf_merged = gdf.merge(polys, how='inner', on='FID')
+    
+    for col in gdf_merged.columns:
+        gdf_merged = gdf_merged.rename(columns={'{}'.format(col):'{}'.format(col.lower())})
+    keyList=[]
+    for key in dictionary:
+        keyList.append(key)
+        selectList = dictionary['{}'.format(key)]
+        print(key, selectList) 
+        select = [x for x in gdf_merged if x in selectList]
+        print(select)
+        gdf_merged['{}'.format(key)] = gdf_merged.loc[:, select].sum(axis=1)
+        gdf_merged['{}'.format(key)].astype(int)
+        print(gdf_merged['{}'.format(key)].sum())
+    
+    gdf_merged['immigrants'] = gdf_merged['totalpop'] - gdf_merged['pol']
+    gdf_merged['immigrants'].astype(int)
+    gdf_merged['noneu_immigrants']= gdf_merged['immigrants'] - gdf_merged['EU']
+    
 
+    #save shapefiles to folder
+    print("------------------------------ Creating shapefile:{0} on Vector Grid------------------------------".format(year)) 
+    gdf_merged.to_file(ancillary_POPdata_folder_path + "/{0}/temp_shp/{0}_dataVectorGrid.geojson".format(year), driver='GeoJSON', crs='EPSG:3035')
+    #save shapefiles to folder
+    #print("------------------------------ Creating shapefile:{0} on Points------------------------------".format(year)) 
+    #gdf_points.to_file(ancillary_POPdata_folder_path + "/{0}/temp_shp/{0}_dataPoints.shp".format(year))
 
 def sumGroups(ancillary_POPdata_folder_path,year, dictionary):
     ndf = gpd.read_file(ancillary_POPdata_folder_path + '/{0}/temp_shp/{0}_dataVectorGrid.shp'.format(year))
